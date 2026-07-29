@@ -4,7 +4,7 @@
 
 Static audit at base `36de5b55a629a07666f5ada293df2c0f5c922b7b`. Five findings: mutable CI and firmware inputs, write-capable mutable workflow code, an unlocked USB Studio endpoint, and management features compiled into every left-half build. No critical finding. No high-confidence secret-pattern match in reachable Git history.
 
-Fork-source delta review at immutable Cormoran ZMK commit `4493783ef88ce2e653bf8217c92ee17140df71e3` adds three findings: an undersized encrypted relay write reaches an out-of-bounds header read, wired transport disable callbacks do not disable their receivers, and tap-dance ignored positions still resolve to HID behavior. The latter two are respectively a dormant hardening gap and a maintainability/HID-integrity defect, not remotely reachable vulnerabilities in the reviewed Corne configuration.
+Fork-source delta review at immutable Cormoran ZMK commit `4493783ef88ce2e653bf8217c92ee17140df71e3` adds four findings: an undersized encrypted relay write reaches an out-of-bounds header read, BLE Studio RX can spin forever when its ring buffer fills, wired transport disable callbacks do not disable their receivers, and tap-dance ignored positions still resolve to HID behavior. Wired and tap-dance findings are respectively a dormant hardening gap and a maintainability/HID-integrity defect, not remotely reachable vulnerabilities in the reviewed Corne configuration.
 
 Protected assets: firmware integrity on both halves; host input integrity/confidentiality; Bluetooth identities, bonds, and settings; GitHub repository and Actions token; build-artifact provenance.
 
@@ -102,11 +102,22 @@ None in this local/CI scope.
 **Regression risk:** Strict rejection removes any accidental fragmented-write behavior. The characteristic already says offset support is absent and uses write-without-response, so a full-frame-only contract should be validated against the actual central.
 **Verification:** Add a host-side GATT parser test for lengths 0, 1, exact header, exact valid frame, maximum valid frame, and oversized fields under ASan/UBSan where possible; on hardware, send the same encrypted writes and confirm rejection without reset or event delivery.
 
+### ZMK-SEC-007 — Full Studio RX ring buffer traps BLE callback in an infinite loop
+
+**Severity:** Medium
+**Class:** Vulnerability / denial of service
+**Evidence:** Audited clone `/tmp/zmk-corne-security-audit/zmk/app/src/studio/gatt_rpc_transport.c:63-85` and default 30-byte RX capacity at `/tmp/zmk-corne-security-audit/zmk/app/src/studio/Kconfig:97-103` at `4493783ef88ce2e653bf8217c92ee17140df71e3`; BLE Studio transport is enabled by default at `/tmp/zmk-corne-security-audit/zmk/app/src/studio/Kconfig:74-80` at the same SHA.
+**Impact:** An encrypted BLE Studio client can trap Bluetooth callback processing indefinitely, preventing RPC notification and denying Bluetooth processing until watchdog/reset intervention.
+**Scenario:** With `handling_rx=true`, encrypted client sends a Studio GATT write whose length exceeds current free RX-ring capacity; callback copies until the 30-byte default ring fills; `ring_buf_put_claim()` then returns zero, `copied` does not advance, loop never exits, and `zmk_rpc_rx_notify()` is never reached.
+**Recommendation:** Before copying, atomically reject a write that exceeds current ring-buffer free space, or implement bounded backpressure that exits callback and resumes only after consumer progress; never wait or spin inside Bluetooth write callback. Define one full-write acceptance contract so rejected data cannot leave a partial RPC frame.
+**Regression risk:** Whole-write rejection can require client retry/framing changes and can expose existing assumptions about ATT write size versus RPC ring capacity; asynchronous backpressure adds synchronization and disconnect cleanup complexity.
+**Verification:** Host test should prefill RX ring to controlled free capacities, submit writes at `free`, `free+1`, and larger-than-empty-capacity sizes, and assert bounded callback return, no partial enqueue on rejection, and notification only for accepted bytes. Hardware test should negotiate a sufficiently large BLE MTU, send an encrypted oversized or rapid write sequence, and confirm BLE remains responsive, callback returns, malformed RPC is rejected, and later valid RPC succeeds.
+
 ## Low Findings
 
 None in this local/CI scope.
 
-### ZMK-SEC-007 — Wired transport disable callbacks leave the receiver active
+### ZMK-SEC-008 — Wired transport disable callbacks leave the receiver active
 
 **Severity:** Low
 **Class:** Hardening gap / dormant transport trust
@@ -117,7 +128,7 @@ None in this local/CI scope.
 **Regression risk:** Correct disable behavior changes failover timing and may expose latent health-check or UART power-management assumptions.
 **Verification:** On a wired-enabled fixture, switch between wired and BLE while recording UART IRQ/async state; after disable, inject a valid CRC-framed behavior command and confirm it is ignored; re-enable and confirm normal operation.
 
-### ZMK-SEC-008 — Tap-dance ignored positions still trigger HID behavior
+### ZMK-SEC-009 — Tap-dance ignored positions still trigger HID behavior
 
 **Severity:** Low
 **Class:** Maintainability / HID integrity
@@ -195,7 +206,9 @@ M	app/west.yml
 
 Required split primitive search returned 103 matching diff lines. Required added-dangerous-primitive search returned 28 lines: four `allocate` documentation/name false positives, five relay macro copies protected by compile-time size assertions, and outbound/inbound relay pack/unpack operations. Review found one actionable unmatched bound, ZMK-SEC-006; other inbound copies follow maximum and exact-total-length checks, while current outbound callers derive lengths from compile-time-sized event types.
 
-Runtime/HID dispositions: activity persistence checks stored length and debounces writes but does not report `settings_save_one()` failure; activity setters update idle before sleep with no rollback if the latter fails; battery interpolation assumes a nonempty ordered devicetree threshold list, but reviewed Corne uses `zmk,battery-nrf-vddh`, not the changed voltage-divider driver; hold-tap list lengths bound their loops; tap-dance ignore control flow produces ZMK-SEC-008. Wired health/enable code produces ZMK-SEC-007 but is dormant without a `zmk,wired-split` devicetree node.
+Separate Studio GATT control-flow review found ZMK-SEC-007; the required dangerous-primitive regex does not select `ring_buf_put_claim()` or the zero-progress loop. RX-ring capacity, callback progress, and notify reachability are now explicitly dispositioned by that finding.
+
+Runtime/HID dispositions: activity persistence checks stored length and debounces writes but does not report `settings_save_one()` failure; activity setters update idle before sleep with no rollback if the latter fails; battery interpolation assumes a nonempty ordered devicetree threshold list, but reviewed Corne uses `zmk,battery-nrf-vddh`, not the changed voltage-divider driver; hold-tap list lengths bound their loops; tap-dance ignore control flow produces ZMK-SEC-009. Wired health/enable code produces ZMK-SEC-008 but is dormant without a `zmk,wired-split` devicetree node.
 
 Fork `git diff --check` is not clean: `app/dts/bindings/zmk,wired-split.yaml:41` has a new blank line at EOF. This is maintainability evidence, not a security finding, and source was not changed.
 
@@ -222,8 +235,9 @@ Fork delta review was also static. No Zephyr/ZMK build, sanitizer execution agai
 3. Enable Studio locking and test physical unlock/re-lock behavior (ZMK-SEC-003).
 4. Split Studio/custom RPC settings from normal left firmware; inspect all artifact effective configs (ZMK-SEC-005).
 5. Reject undersized/nonzero-offset relay writes before header access (ZMK-SEC-006).
-6. Correct wired transport disable semantics before enabling wired split in an artifact (ZMK-SEC-007).
-7. Make tap-dance ignored positions skip outer resolution and add HID-event regression coverage (ZMK-SEC-008).
+6. Bound Studio BLE RX writes so a full ring never traps callback processing (ZMK-SEC-007).
+7. Correct wired transport disable semantics before enabling wired split in an artifact (ZMK-SEC-008).
+8. Make tap-dance ignored positions skip outer resolution and add HID-event regression coverage (ZMK-SEC-009).
 
 ## Audit Record
 
@@ -235,4 +249,4 @@ Fork delta review was also static. No Zephyr/ZMK build, sanitizer execution agai
 
 **Fork audit scope:** Cormoran ZMK `4493783ef88ce2e653bf8217c92ee17140df71e3` against official merge base `edf5c0814fd3ea202e43aad2d68fd32e882a518c`; report-only update, no source remediation or flash.
 
-**Fork audit concerns:** ZMK-SEC-006 needs sanitizer and encrypted-link packet tests; ZMK-SEC-007 needs a wired fixture but is dormant in reviewed Corne DTS; ZMK-SEC-008 needs behavior/HID event coverage. Hardware behavior remains unverified.
+**Fork audit concerns:** ZMK-SEC-006 needs sanitizer and encrypted-link packet tests; ZMK-SEC-007 needs bounded host-ring and encrypted BLE stress tests; ZMK-SEC-008 needs a wired fixture but is dormant in reviewed Corne DTS; ZMK-SEC-009 needs behavior/HID event coverage. Hardware behavior remains unverified.
