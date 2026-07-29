@@ -9,6 +9,18 @@ AUDITED_DRAW_SHA = "3a4ca7e060a54ba700d3e7b6a43cb0b9cec347d2"
 DRAW_WORKFLOW_SOURCE = (
     "caksoylar/keymap-drawer/.github/workflows/draw-zmk.yml"
 )
+BUILD_CALLER = ROOT / ".github" / "workflows" / "build.yml"
+PINNED_BUILD_WORKFLOW = (
+    ROOT / ".github" / "workflows" / "build-user-config-pinned.yml"
+)
+AUDITED_ACTION_USES = {
+    "actions/checkout": "11d5960a326750d5838078e36cf38b85af677262",
+    "actions/cache": "0057852bfaa89a56745cba8c7296529d2fc39830",
+    "actions/upload-artifact": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+    "actions/upload-artifact/merge": (
+        "ea165f8d65b6e75b540449e92b4886f43607fa02"
+    ),
+}
 WEST_MANIFEST = ROOT / "config" / "west.yml"
 DEPENDENCY_INVENTORY = ROOT / "security" / "audit" / "dependency-inventory.tsv"
 AUDITED_NANOPB_SHA = "8c60555d6277a0360c876bd85d491fc4fb0cd74a"
@@ -35,6 +47,24 @@ AUDITED_WEST_REVISIONS = {
 
 
 class WorkflowSecurityTests(unittest.TestCase):
+    def test_build_caller_is_local_and_read_only(self) -> None:
+        caller = BUILD_CALLER.read_text(encoding="utf-8")
+        self.assertIn(
+            "uses: ./.github/workflows/build-user-config-pinned.yml",
+            caller,
+        )
+        self.assertRegex(caller, re.compile(r"(?m)^\s+contents:\s+read\s*$"))
+        self.assertNotIn("zmkfirmware/zmk/.github/workflows/", caller)
+
+    def test_vendored_build_actions_are_pinned(self) -> None:
+        workflow = PINNED_BUILD_WORKFLOW.read_text(encoding="utf-8")
+        for source, sha in AUDITED_ACTION_USES.items():
+            self.assertIn(f"uses: {source}@{sha}", workflow)
+        self.assertNotRegex(
+            workflow,
+            re.compile(r"(?m)^\s*uses:\s+[^./][^@\s]*@(main|master|v\d+)"),
+        )
+
     def test_west_projects_use_audited_revisions(self) -> None:
         manifest = WEST_MANIFEST.read_text(encoding="utf-8")
 
