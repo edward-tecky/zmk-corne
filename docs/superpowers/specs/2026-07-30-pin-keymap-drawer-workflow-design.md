@@ -137,6 +137,9 @@ finding is fixed or removed with evidence. No current UF2 is approved for flash.
 
 ## Implementation Plan Set
 
+- `docs/superpowers/plans/2026-07-30-zmk-security-remediation-master.md`
+  orchestrates all work packages, dependency gates, reviews, and final hardware
+  approval.
 - `docs/superpowers/plans/2026-07-30-zmk-sec-001-pin-keymap-drawer.md`
   handles ZMK-SEC-001.
 - `docs/superpowers/plans/2026-07-30-zmk-supply-chain-remediation.md`
