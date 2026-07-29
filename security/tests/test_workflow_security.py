@@ -10,6 +10,7 @@ DRAW_WORKFLOW_SOURCE = (
     "caksoylar/keymap-drawer/.github/workflows/draw-zmk.yml"
 )
 BUILD_CALLER = ROOT / ".github" / "workflows" / "build.yml"
+BUILD_MATRIX = ROOT / "build.yaml"
 PINNED_BUILD_WORKFLOW = (
     ROOT / ".github" / "workflows" / "build-user-config-pinned.yml"
 )
@@ -47,6 +48,23 @@ AUDITED_WEST_REVISIONS = {
 
 
 class WorkflowSecurityTests(unittest.TestCase):
+    def test_distributable_build_matrix_only_contains_ordinary_right(self) -> None:
+        matrix = BUILD_MATRIX.read_text(encoding="utf-8")
+
+        self.assertEqual(len(re.findall(r"(?m)^\s{2}- board:", matrix)), 1)
+        self.assertIn("shield: eyelash_corne_right nice_view", matrix)
+        for withheld in (
+            "settings_reset",
+            "studio-rpc",
+            "CONFIG_ZMK_STUDIO",
+            "eyelash_corne_studio",
+        ):
+            self.assertNotIn(withheld, matrix)
+        self.assertNotRegex(
+            matrix,
+            re.compile(r"(?m)^\s+(snippet|cmake-args|artifact-name):"),
+        )
+
     def test_build_caller_is_local_and_read_only(self) -> None:
         caller = BUILD_CALLER.read_text(encoding="utf-8")
         self.assertIn(
