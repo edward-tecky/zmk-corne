@@ -4,6 +4,8 @@
 
 Static audit at base `36de5b55a629a07666f5ada293df2c0f5c922b7b`. Five findings: mutable CI and firmware inputs, write-capable mutable workflow code, an unlocked USB Studio endpoint, and management features compiled into every left-half build. No critical finding. No high-confidence secret-pattern match in reachable Git history.
 
+Fork-source delta review at immutable Cormoran ZMK commit `4493783ef88ce2e653bf8217c92ee17140df71e3` adds three findings: an undersized encrypted relay write reaches an out-of-bounds header read, wired transport disable callbacks do not disable their receivers, and tap-dance ignored positions still resolve to HID behavior. The latter two are respectively a dormant hardening gap and a maintainability/HID-integrity defect, not remotely reachable vulnerabilities in the reviewed Corne configuration.
+
 Protected assets: firmware integrity on both halves; host input integrity/confidentiality; Bluetooth identities, bonds, and settings; GitHub repository and Actions token; build-artifact provenance.
 
 Threats reviewed: changed branch/tag after review, compromised dependency or reusable workflow, malicious USB/BLE Studio request, accidental management-interface exposure, and untrusted workflow code receiving a write token. Physical device compromise, Nordic bootloader security, host OS compromise, semiconductor attacks, and protocol memory safety require separate source/hardware review.
@@ -89,9 +91,42 @@ None in this local/CI scope.
 **Regression risk:** DYA Studio features, runtime settings, or encoder configuration can disappear from non-Studio left artifact; split central/peripheral behavior must be rebuilt and tested.
 **Verification:** Build ordinary left, Studio-left, and right artifacts; inspect each effective `.config` and DTS for Studio, USB CDC ACM/UART, BLE management, settings RPC, runtime RPC, and split relay settings.
 
+### ZMK-SEC-006 — One-byte relay writes reach a two-byte header read
+
+**Severity:** Medium
+**Class:** Vulnerability / memory safety
+**Evidence:** Audited clone `/tmp/zmk-corne-security-audit/zmk/app/src/split/bluetooth/service.c:100-113` at `4493783ef88ce2e653bf8217c92ee17140df71e3`; the characteristic requires an encrypted write at `/tmp/zmk-corne-security-audit/zmk/app/src/split/bluetooth/service.c:278-282` at the same SHA.
+**Impact:** A peer on an encrypted split link can make the peripheral read one byte beyond the supplied GATT attribute value. No disclosure path was established, but the C out-of-bounds read can consume unrelated buffer data and may fault or destabilize firmware depending on the Bluetooth buffer layout.
+**Scenario:** Peer sends `WRITE WITHOUT RESPONSE` to the relay-event characteristic with `offset=0` and `len=1`; the initial check rejects only zero length or an oversized aggregate; `memcpy(header, buf, sizeof(struct relay_event_header))` then reads two bytes from the one-byte value before any minimum-header validation.
+**Recommendation:** Reject `len < sizeof(struct relay_event_header)` and every nonzero offset before copying the header; retain the existing maximum-field and exact-total-length checks after that guard.
+**Regression risk:** Strict rejection removes any accidental fragmented-write behavior. The characteristic already says offset support is absent and uses write-without-response, so a full-frame-only contract should be validated against the actual central.
+**Verification:** Add a host-side GATT parser test for lengths 0, 1, exact header, exact valid frame, maximum valid frame, and oversized fields under ASan/UBSan where possible; on hardware, send the same encrypted writes and confirm rejection without reset or event delivery.
+
 ## Low Findings
 
 None in this local/CI scope.
+
+### ZMK-SEC-007 — Wired transport disable callbacks leave the receiver active
+
+**Severity:** Low
+**Class:** Hardening gap / dormant transport trust
+**Evidence:** Audited clone `/tmp/zmk-corne-security-audit/zmk/app/src/split/wired/central.c:409-425`, `/tmp/zmk-corne-security-audit/zmk/app/src/split/wired/peripheral.c:380-399`, `/tmp/zmk-corne-security-audit/zmk/app/src/split/wired/peripheral.c:464-510`, and `/tmp/zmk-corne-security-audit/zmk/app/src/split/peripheral.c:27-59` at `4493783ef88ce2e653bf8217c92ee17140df71e3`.
+**Impact:** A build that enables wired split cannot reliably deactivate its wired receiver during transport selection. This weakens the active-transport trust boundary and can leave a physical command-input path running after a switch. Reviewed Corne DTS does not enable wired split, so no current artifact reachability was established.
+**Scenario:** Dual-transport firmware activates wired RX and later asks the registered transport API to disable it; central callback sets only its local argument and returns no defined status, peripheral callback returns success without acting, and peripheral internal disable overwrites `enabled=false` with `true`. Wired parser work therefore remains capable of queueing commands.
+**Recommendation:** Make both public callbacks call their internal enable/disable implementation and return its result; remove the forced `enabled=true`; gate command processing on the registered transport being active.
+**Regression risk:** Correct disable behavior changes failover timing and may expose latent health-check or UART power-management assumptions.
+**Verification:** On a wired-enabled fixture, switch between wired and BLE while recording UART IRQ/async state; after disable, inject a valid CRC-framed behavior command and confirm it is ignored; re-enable and confirm normal operation.
+
+### ZMK-SEC-008 — Tap-dance ignored positions still trigger HID behavior
+
+**Severity:** Low
+**Class:** Maintainability / HID integrity
+**Evidence:** Audited clone `/tmp/zmk-corne-security-audit/zmk/app/src/behaviors/behavior_tap_dance.c:217-247` at `4493783ef88ce2e653bf8217c92ee17140df71e3`.
+**Impact:** Configuration claims an ignored key will not interrupt an active tap dance, but that key can still stop the timer and press/release the selected tap-dance behavior, producing unintended host input. This is a functional HID-integrity defect, not an externally reachable vulnerability.
+**Scenario:** Tap dance is undecided; a configured `ignore-key-positions` key is pressed; matching branch executes `continue` only for the inner ignore-list loop; control then reaches `stop_timer()` and `press_tap_dance_behavior()`.
+**Recommendation:** Track a match and continue the outer active-tap-dance loop, or move ignore-list evaluation into a helper whose true result skips resolution.
+**Regression risk:** Correct ignored-key behavior changes timing for users who may have unknowingly depended on current interruption.
+**Verification:** Add behavior test with one active tap dance and one ignored key; assert no tap-dance press/release event on ignored press, then assert a non-ignored press still resolves it.
 
 ## Positive Security Observations
 
@@ -101,6 +136,68 @@ None in this local/CI scope.
 - Dedicated `settings_reset` artifact preserves recovery path (`build.yaml:10-11`). Persistent settings are intentional on central left (`boards/shields/eyelash_corne/eyelash_corne_left.conf:31-32`).
 - Bootloader and `sys_reset` bindings are reachable on Fn layer (`config/eyelash_corne.keymap:88-94`). No finding assigned: physical access and bootloader protection assumptions were not verified, and ordinary recovery bindings alone do not establish vulnerability.
 - Required history secret-pattern scan returned zero matches. Pattern absence is not proof that history is credential-free.
+- Custom Studio requests are bounded by pinned message option `zmk.custom.CallRequest.payload max_size:CONFIG_ZMK_STUDIO_RPC_CUSTOM_SUBSYSTEM_REQUEST_PAYLOAD_MAX_BYTES` (`/tmp/zmk-corne-security-audit/zmk-studio-messages/proto/zmk/custom.options.in:1-2` at `89b81d2e587fce807b668dff2a6967a40beef421`); fork Kconfig defaults that maximum to 25 bytes (`/tmp/zmk-corne-security-audit/zmk/app/src/studio/Kconfig:111-121` at `4493783ef88ce2e653bf8217c92ee17140df71e3`). Custom dispatch validates subsystem index and applies each registered subsystem's `SECURED` lock policy before invoking its handler (`/tmp/zmk-corne-security-audit/zmk/app/src/studio/custom_subsystem.c:90-113` at `4493783ef88ce2e653bf8217c92ee17140df71e3`). The top-level custom handler is intentionally unsecure because this inner check owns policy.
+- BLE relay central-to-peripheral writes require both an L2-or-higher connection check and an encrypted-write GATT permission; peripheral-to-central frames validate header presence, configured name/data maxima, exact total length, and null-terminate the copied name before queueing (`/tmp/zmk-corne-security-audit/zmk/app/src/split/bluetooth/central.c:348-368` and `/tmp/zmk-corne-security-audit/zmk/app/src/split/bluetooth/central.c:380-438` at `4493783ef88ce2e653bf8217c92ee17140df71e3`). ZMK-SEC-006 is the asymmetric missing minimum-header check in the peripheral write callback.
+- Relay macros enforce event payload and identifier capacity at build time, copy only `sizeof(struct event_type)`, and receivers require exact event-data size before reconstructing the typed event (`/tmp/zmk-corne-security-audit/zmk/app/include/zmk/event_manager.h:95-139` at `4493783ef88ce2e653bf8217c92ee17140df71e3`).
+- Runtime activity settings accept only the exact persisted struct length and coalesce saves through delayed work (`/tmp/zmk-corne-security-audit/zmk/app/src/activity.c:67-83` and `/tmp/zmk-corne-security-audit/zmk/app/src/activity.c:106-122` at `4493783ef88ce2e653bf8217c92ee17140df71e3`). Save-result reporting, numeric policy, and hardware sleep behavior remain validation concerns rather than established vulnerabilities.
+
+## Cormoran Fork Delta Provenance and Review
+
+Audited source: `https://github.com/cormoran/zmk` at immutable commit `4493783ef88ce2e653bf8217c92ee17140df71e3` (`2026-05-04T16:25:41+09:00`, `Merge pull request #1 from cormoran/dev/v0.3-branch+dya/support-mouse-keymap`). This exactly matches Task 1's resolved `cormoran/zmk@v0.3-branch+dya` identity.
+
+Official comparison: fetched `https://github.com/zmkfirmware/zmk.git` `main` at `faaf39d9f59cd2a27eca3739cdd9eb197654299b` on 2026-07-29. `git merge-base HEAD upstream/main` returned `edf5c0814fd3ea202e43aad2d68fd32e882a518c` (`2025-08-01T16:44:20-06:00`, `chore(main): release 0.3.0 (#2858)`), matching the expected official ZMK v0.3.0 base.
+
+`git diff --stat edf5c0814fd3ea202e43aad2d68fd32e882a518c..4493783ef88ce2e653bf8217c92ee17140df71e3 -- app` reported 41 files, 1,322 insertions, and 69 deletions. Exact non-test app delta:
+
+```text
+M	app/CMakeLists.txt
+M	app/dts/bindings/behaviors/zmk,behavior-hold-tap.yaml
+M	app/dts/bindings/behaviors/zmk,behavior-tap-dance.yaml
+M	app/dts/bindings/zmk,wired-split.yaml
+M	app/include/drivers/behavior.h
+A	app/include/linker/zmk-rpc-custom-subsystems.ld
+M	app/include/zmk/activity.h
+M	app/include/zmk/ble.h
+M	app/include/zmk/endpoints.h
+M	app/include/zmk/event_manager.h
+M	app/include/zmk/split/bluetooth/uuid.h
+M	app/include/zmk/split/central.h
+M	app/include/zmk/split/transport/types.h
+A	app/include/zmk/split/wired/peripheral.h
+A	app/include/zmk/studio/custom.h
+M	app/module/drivers/sensor/battery/battery_common.c
+M	app/module/drivers/sensor/battery/battery_common.h
+M	app/module/drivers/sensor/battery/battery_voltage_divider.c
+M	app/module/dts/bindings/sensor/zmk,battery-voltage-divider.yaml
+M	app/src/activity.c
+M	app/src/behaviors/behavior_bt.c
+M	app/src/behaviors/behavior_hold_tap.c
+M	app/src/behaviors/behavior_input_two_axis.c
+M	app/src/behaviors/behavior_tap_dance.c
+M	app/src/ble.c
+M	app/src/endpoints.c
+M	app/src/event_manager.c
+M	app/src/split/Kconfig
+M	app/src/split/bluetooth/central.c
+M	app/src/split/bluetooth/service.c
+M	app/src/split/central.c
+M	app/src/split/peripheral.c
+M	app/src/split/wired/central.c
+M	app/src/split/wired/peripheral.c
+M	app/src/studio/CMakeLists.txt
+M	app/src/studio/Kconfig
+M	app/src/studio/core.c
+A	app/src/studio/custom_subsystem.c
+M	app/src/studio/gatt_rpc_transport.c
+M	app/src/studio/rpc.c
+M	app/west.yml
+```
+
+Required split primitive search returned 103 matching diff lines. Required added-dangerous-primitive search returned 28 lines: four `allocate` documentation/name false positives, five relay macro copies protected by compile-time size assertions, and outbound/inbound relay pack/unpack operations. Review found one actionable unmatched bound, ZMK-SEC-006; other inbound copies follow maximum and exact-total-length checks, while current outbound callers derive lengths from compile-time-sized event types.
+
+Runtime/HID dispositions: activity persistence checks stored length and debounces writes but does not report `settings_save_one()` failure; activity setters update idle before sleep with no rollback if the latter fails; battery interpolation assumes a nonempty ordered devicetree threshold list, but reviewed Corne uses `zmk,battery-nrf-vddh`, not the changed voltage-divider driver; hold-tap list lengths bound their loops; tap-dance ignore control flow produces ZMK-SEC-008. Wired health/enable code produces ZMK-SEC-007 but is dormant without a `zmk,wired-split` devicetree node.
+
+Fork `git diff --check` is not clean: `app/dts/bindings/zmk,wired-split.yaml:41` has a new blank line at EOF. This is maintainability evidence, not a security finding, and source was not changed.
 
 ## Migration Recommendation
 
@@ -108,11 +205,15 @@ Target state: official ZMK where feature requirements permit; smallest reviewed 
 
 Do not treat custom RPC code, BLE authorization, DYA client behavior, or effective build output as reviewed by this report. Those need source, build, and hardware validation work.
 
+Task 3 narrows that earlier limitation: Cormoran fork dispatcher, framing deltas, BLE/split relay paths, wired transport changes, runtime activity storage, changed behaviors, and battery-driver delta were statically reviewed at the immutable SHA above. External custom subsystem implementations, complete BLE pairing policy, DYA client, effective build output, and hardware behavior remain outside verified scope.
+
 ## Limitations and Manual Validation
 
 Static review only. No firmware build, hardware flash, serial probe, Studio client connection, BLE scan, reset, bootloader invocation, or settings-reset operation occurred.
 
 Manual validation must confirm: intended central half, USB-only versus BLE Studio transport, lock-before-unlock behavior, re-lock on disconnect/idle, custom RPC authorization, persistence/reset semantics, and physical bootloader protection. Build inspection must establish effective Kconfig/DTS because shield and CMake configuration composition can alter results.
+
+Fork delta review was also static. No Zephyr/ZMK build, sanitizer execution against the embedded GATT callback, BLE packet injection, split pairing, wired fixture, HID capture, or battery/sleep measurement occurred. Hardware behavior and actual compiler/linker configuration remain unverified. External custom subsystem implementations were consulted only to understand dispatcher policy and activity reachability; they were not exhaustively audited here.
 
 ## Remediation Order
 
@@ -120,6 +221,9 @@ Manual validation must confirm: intended central half, USB-only versus BLE Studi
 2. Pin all west manifest sources and CI reusable workflows/actions (ZMK-SEC-002, ZMK-SEC-004).
 3. Enable Studio locking and test physical unlock/re-lock behavior (ZMK-SEC-003).
 4. Split Studio/custom RPC settings from normal left firmware; inspect all artifact effective configs (ZMK-SEC-005).
+5. Reject undersized/nonzero-offset relay writes before header access (ZMK-SEC-006).
+6. Correct wired transport disable semantics before enabling wired split in an artifact (ZMK-SEC-007).
+7. Make tap-dance ignored positions skip outer resolution and add HID-event regression coverage (ZMK-SEC-008).
 
 ## Audit Record
 
@@ -128,3 +232,7 @@ Manual validation must confirm: intended central half, USB-only versus BLE Studi
 **Audit report commit:** `df60510124e2162b48f85d6945b190960513d651` (`docs: audit local ZMK security configuration`).
 
 **Concerns:** Effective artifact configuration, custom RPC authorization/parser safety, BLE Studio reachability, physical bootloader protection, and hardware lock/re-lock behavior remain unverified. Required quoted history-secret command has shell argument-shape defect; corrected all-revision scan returned zero matches.
+
+**Fork audit scope:** Cormoran ZMK `4493783ef88ce2e653bf8217c92ee17140df71e3` against official merge base `edf5c0814fd3ea202e43aad2d68fd32e882a518c`; report-only update, no source remediation or flash.
+
+**Fork audit concerns:** ZMK-SEC-006 needs sanitizer and encrypted-link packet tests; ZMK-SEC-007 needs a wired fixture but is dormant in reviewed Corne DTS; ZMK-SEC-008 needs behavior/HID event coverage. Hardware behavior remains unverified.
