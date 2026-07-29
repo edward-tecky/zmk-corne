@@ -36,7 +36,7 @@ None in this local/CI scope.
 
 **Severity:** High
 **Class:** Supply-chain risk
-**Evidence:** `.github/workflows/draw.yml:12-17`
+**Evidence:** `.github/workflows/draw.yml:12-17`; Task 1 workflow inventory `security/audit/workflow-inventory.tsv:8` records requested `main` resolved to `3a4ca7e060a54ba700d3e7b6a43cb0b9cec347d2`.
 **Impact:** Compromise or retargeting of `caksoylar/keymap-drawer` can execute attacker-controlled workflow code with permission to commit to this repository.
 **Scenario:** Trusted `push` or manual dispatch starts Draw Keymap; caller resolves `@main`; called workflow receives `contents: write` and `destination: "commit"`; malicious replacement code pushes an arbitrary repository change.
 **Recommendation:** Pin called workflow to reviewed commit `3a4ca7e060a54ba700d3e7b6a43cb0b9cec347d2`; preserve `contents: write` only in separate tightly scoped generation job if automatic commits remain required, otherwise generate artifact or pull request without write token.
@@ -47,7 +47,7 @@ None in this local/CI scope.
 
 **Severity:** High
 **Class:** Supply-chain risk
-**Evidence:** `config/west.yml:8-29`
+**Evidence:** `config/west.yml:8-29`; Task 1 dependency inventory `security/audit/dependency-inventory.tsv:2-9` records mutable inputs resolved to `eyelash_corne=ba1eeab627ba94ac46f7768b3ddc01f97873ca87`, `zmk=4493783ef88ce2e653bf8217c92ee17140df71e3`, `zmk-behavior-runtime-sensor-rotate=8b1125ed676c1f5e14145d217984f33d0ebdcef4`, `zmk-module-ble-management=851661cd21f2aded8ec649da86e01a207dc4b973`, `zmk-module-battery-history=307755dd2ad4d320e14de162e8e5ef018f29d929`, `zmk-module-settings-rpc=78f86df9e6c5edaf57bef3ccbd7f360cfdf49291`, `zmk-module-runtime-input-processor=dbf92f764de8b6ffd60bf5850514302875fe2570`, and imported `zephyr=dacab4875df72109b96cc8977547a0dc04875bcd`.
 **Impact:** Same reviewed repository revision can build different firmware later, including malicious firmware, when branch or lightweight-tag targets move.
 **Scenario:** Any mutable project revision changes after review; next local or CI `west update` resolves new source before build. Task 1 inventory records eight mutable direct/imported inputs, including `zmk`, all custom modules, and imported Zephyr.
 **Recommendation:** Replace every Task 1 inventory row marked `mutable=yes` with its recorded full resolved SHA; current direct values include `eyelash_corne=ba1eeab627ba94ac46f7768b3ddc01f97873ca87`, `zmk=4493783ef88ce2e653bf8217c92ee17140df71e3`, and each listed module SHA. Retain human-readable upstream release/branch comment beside each pin.
@@ -71,12 +71,12 @@ None in this local/CI scope.
 
 **Severity:** Medium
 **Class:** Supply-chain risk
-**Evidence:** `.github/workflows/build.yml:10`
-**Impact:** A moved workflow/action tag can alter CI build behavior or generated firmware artifact without a repository commit.
-**Scenario:** `Build ZMK firmware` runs on trusted push/manual dispatch and resolves `zmkfirmware/zmk@v0.3.0`; Task 1 inventory shows this and nested `actions/*` references are lightweight tags, not immutable commits. Changed tag code runs during build.
-**Recommendation:** Pin reusable workflow to `edf5c0814fd3ea202e43aad2d68fd32e882a518c`; when upstream workflow update is reviewed, update SHA and release comment together. Require called workflow to use full-SHA action pins or vendor a reviewed reusable workflow.
+**Evidence:** `.github/workflows/build.yml:1-10`; Task 1 workflow inventory `security/audit/workflow-inventory.tsv:2-7` records requested `zmkfirmware/zmk@v0.3.0` resolved to `edf5c0814fd3ea202e43aad2d68fd32e882a518c`, `actions/checkout@v4` to `11d5960a326750d5838078e36cf38b85af677262`, `actions/cache@v4` to `0057852bfaa89a56745cba8c7296529d2fc39830`, and `actions/upload-artifact@v4`/`actions/upload-artifact/merge@v4` to `ea165f8d65b6e75b540449e92b4886f43607fa02`.
+**Impact:** A moved workflow/action tag can alter CI build behavior or generated firmware artifact without a repository commit and, if repository Actions default grants write, can gain repository-write capability.
+**Scenario:** `Build ZMK firmware` runs on trusted push/manual dispatch and resolves `zmkfirmware/zmk@v0.3.0`; nested `actions/*` references are lightweight tags, not immutable commits. Caller declares no `permissions`, so Task 1 inventory records that repository default governs effective `GITHUB_TOKEN` scope. Changed tag code runs during build with whatever scope that repository setting permits.
+**Recommendation:** Pin reusable workflow to `edf5c0814fd3ea202e43aad2d68fd32e882a518c`; when upstream workflow update is reviewed, update SHA and release comment together. Add caller least-privilege `permissions`, normally `contents: read`, after confirming reusable workflow requirements; require called workflow to use full-SHA action pins or vendor a reviewed reusable workflow.
 **Regression risk:** Pinning delays upstream CI fixes and can require manual update of nested action pins.
-**Verification:** Trigger build twice from clean runners; record called-workflow SHA and action SHAs from workflow inventory; verify expected firmware artifact names and hashes.
+**Verification:** Manually check repository Settings → Actions → General → Workflow permissions and record read-only versus read/write default; inspect effective job token permissions. Then trigger build twice from clean runners; record called-workflow SHA and action SHAs from workflow inventory; verify expected firmware artifact names and hashes.
 
 ### ZMK-SEC-005 — Generic left-half configuration enables Studio and custom management RPCs
 
