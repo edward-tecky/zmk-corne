@@ -513,3 +513,28 @@ The required dangerous-browser-primitive scan was run exactly and matched storag
 **Files changed:** `security_best_practices_report.md` and `security/audit/dependency-inventory.tsv` only. No DYA source, dependency clone, firmware, workflow, deployment, lock state, browser permission, or hardware state was changed.
 
 **Remaining concerns:** ZMK-SEC-013 needs a real browser navigation regression; ZMK-SEC-014 and ZMK-SEC-015 need adversarial fake transports plus BLE/USB stress; ZMK-SEC-016 needs successful build/output inspection, Google Fonts disposition, and production header rollout; ZMK-SEC-017 needs a redacted export contract; ZMK-SEC-018 needs same-model browser/physical-device tests; ZMK-SEC-019 needs complete Cancel/Confirm UI coverage. Exact `npm ci` process evidence was not retained, dependency install/test/build remain blocked, and no hardware behavior is verified.
+
+### Frozen firmware build evidence and manual validation boundary
+
+**Status: build verification passed; no flash recommendation.** Task 6 created inputs, SDK, logs, and generated firmware only under `/tmp/zmk-corne-security-audit`. Repository firmware, manifest, configuration, workflow, and hardware state were not changed. No flash or hardware test occurred.
+
+**Frozen graph:** Static resolved manifest SHA-256 `36b515cb41d7d00e3dc7f20c222750d3fd7c2945cc6c152b742db282959161ba` (`/tmp/zmk-corne-security-audit/frozen-resolved-manifest.sha256`). `checkout-sha-verification.tsv` checked 45 materialized projects against Task 1 and found zero mismatches. Task 1 has duplicate `nanopb` names: active `zmkfirmware/nanopb@8c60555d6277a0360c876bd85d491fc4fb0cd74a` matched; disabled optional Zephyr `nanopb` was not materialized. `west zephyr-export` passed with temporary `HOME=/tmp/zmk-corne-security-audit/home` (`zephyr-export.log`).
+
+Tooling stayed under `/tmp`: West 1.5.0, CMake 4.4.0, Ninja 1.12.1, Zephyr SDK 0.16.3 host tools plus ARM toolchain, and base Python requirements. Separate official SDK minimal-host and ARM-toolchain archives passed `sha256sum -c` (`zephyr-sdk-selected.sha256`). An unused full-SDK archive became corrupt after interrupted range resumes; it was not used.
+
+| Declared artifact | Exact result | UF2 SHA-256 |
+|---|---|---|
+| `nice_nano_v2 + eyelash_corne_right + nice_view` | PASS; `build-right.log` | `ba585a3f524eecc579385d52de3e619df31183417df5ad456a70c5146eeefbf6` |
+| `nice_nano_v2 + eyelash_corne_left + nice_view` | PASS; `build-left-resume-3.log` | `4718c51e2f4cf19b713db85af1e43f98a895c9e1a15ba33d0d6eb51222f78540` |
+| Studio left: above left shield plus `-S studio-rpc-usb-uart -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n` | PASS; `build-studio-left-ninja.log` | `80216ce4d7240622e81cc53962afc7b5c37925f2242b3609fcf741fd0b9da455` |
+| `nice_nano_v2 + settings_reset` | PASS; `build-settings-reset.log` | `541bb4302804daebb5f9793d5e5723818cb6d6883461b7565266f74c389e3b77` |
+
+All builds used frozen `zmk/app`, `-DZMK_CONFIG=/tmp/zmk-corne-security-audit/eyelash_corne/config`, and `-DZMK_EXTRA_MODULES=/tmp/zmk-corne-security-audit/eyelash_corne`; Ninja builds used `-G Ninja`. Complete commands/results are retained in `/tmp/zmk-corne-security-audit/build-*.log`.
+
+**Effective configuration/DTS:** `/tmp/zmk-corne-security-audit/effective-security-config-all.log` and `effective-dts-all.log` are immutable evidence. Right emits `CONFIG_ZMK_SPLIT_RELAY_EVENT=y` and `CONFIG_ZMK_SETTINGS_RPC=y`; Studio, BLE management, runtime input processor, shell, log, and debug are disabled. Normal left emits Studio=y with locking=y, BLE management=y, settings RPC=y, runtime input processor=y, split relay=y, and shell/log/debug disabled. Studio-left emits same enabled module set but `# CONFIG_ZMK_STUDIO_LOCKING is not set`: current supplied CMake arguments disable physical lock enforcement. Settings-reset disables Studio, BLE management, settings RPC, runtime input processor, shell, log, and debug. DTS evidence retains bootloader bindings; UART0/UART1 nodes are disabled in shown artifact DTS. This is build evidence, not a behavior/security pass.
+
+**Repeatability:** fresh Ninja build directories `build-first/right`, `build-second/right`, `build-first/left`, and `build-second/left` used identical frozen inputs. `repeatability-sha256sum.log` shows exact matching hashes: right `ba585a3f524eecc579385d52de3e619df31183417df5ad456a70c5146eeefbf6`, left `4718c51e2f4cf19b713db85af1e43f98a895c9e1a15ba33d0d6eb51222f78540`.
+
+The early Unix-Makefiles Studio attempt hit temporary archive/object corruption and duplicate-archive linker errors; no artifact from it is relied on. Fresh Ninja Studio build passed. Right configuration warnings remained: peripheral-side requested USB and smooth scrolling resolve `n`; battery-history interval is empty while battery history is disabled; EC11 is disabled without compatible DTS; deprecated `NRF_STORE_REBOOT_TYPE_GPREGRET` is enabled. No remediation performed.
+
+`security/audit/manual-hardware-tests.md` is required next gate: recovery/settings reset, both halves, pairing/bond clearing, locked/unlocked/relock Studio, USB/BLE Studio paths, all controls, lighting, sleep/soft-off, idle HID, host switch, and split propagation. Both halves built before any flash recommendation, but physical validation remains mandatory.
