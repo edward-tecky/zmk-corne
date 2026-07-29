@@ -9,7 +9,8 @@ on:
 
 jobs:
   draw:
-    uses: caksoylar/keymap-drawer/.github/workflows/draw-zmk.yml@main
+    # keymap-drawer main resolved and audited on 2026-07-29.
+    uses: caksoylar/keymap-drawer/.github/workflows/draw-zmk.yml@3a4ca7e060a54ba700d3e7b6a43cb0b9cec347d2
     permissions:
       contents: write
     with:
