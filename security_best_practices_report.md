@@ -10,7 +10,7 @@ Protected assets: firmware integrity on both halves; host input integrity/confid
 
 Threats reviewed: changed branch/tag after review, compromised dependency or reusable workflow, malicious USB/BLE Studio request, accidental management-interface exposure, and untrusted workflow code receiving a write token. Physical device compromise, Nordic bootloader security, host OS compromise, semiconductor attacks, and protocol memory safety require separate source/hardware review.
 
-Migration decision: use official ZMK at a reviewed immutable commit with zero external DYA modules in the baseline. Use official implementations for keymap editing, layer management, static macros/combos, encoder rotation, pointing/smooth scrolling, BLE profiles, endpoint selection, fixed idle/deep-sleep policy, and USB/BLE Studio. Remove the uninstantiated runtime-input module, generic split-event relay, and disabled battery-history module. Defer runtime encoder rebinding and the DYA custom RPC client/UI until a concrete requirement and focused review exist. No `retain-module` or `core-fork-exception` is approved. This is a safer target architecture, not verified-safe firmware: both halves were built only from the current Cormoran/DYA graph, not an official-ZMK migration target, and inspected official revision `faaf39d9f59cd2a27eca3739cdd9eb197654299b` still contains the Studio BLE RX zero-progress pattern from ZMK-SEC-007. `security/audit/feature-matrix.md` defines evidence and gates.
+Migration decision: use official ZMK at a reviewed immutable commit with zero external DYA modules in the baseline. The 17 capability rows decide `official` (10) for keymap editing, layer management, static macros/combos, encoder rotation, pointing/smooth scrolling, physical BLE profile operations, endpoint selection, fixed idle/deep-sleep policy, and USB/BLE Studio; `remove` (3) for the uninstantiated runtime-input module, generic split-event relay, and disabled battery-history module; and `defer` (4) for runtime encoder rebinding, runtime BLE profile naming, runtime idle/deep-sleep editing, and the DYA custom RPC client/UI. No `retain-module` or `core-fork-exception` is approved. This is a safer target architecture, not verified-safe firmware: both halves were built only from the current Cormoran/DYA graph, not an official-ZMK migration target, and inspected official revision `faaf39d9f59cd2a27eca3739cdd9eb197654299b` still contains the Studio BLE RX zero-progress pattern from ZMK-SEC-007. BLE Studio requires a later pinned official revision containing an upstream fix plus boundary tests; no local core patch is approved. `security/audit/feature-matrix.md` defines immutable decision evidence and gates.
 
 ## Scope and Method
 
@@ -218,7 +218,7 @@ Fork `git diff --check` is not clean: `app/dts/bindings/zmk,wired-split.yaml:41`
 
 Target state: official ZMK at a reviewed immutable commit; zero external DYA modules in the baseline; every west project and Action/reusable workflow pinned to immutable SHA with an upstream version comment; minimum CI permissions; normal right plus a dedicated central-left Studio artifact; Studio locking, lock-on-disconnect, idle relock, and physical `&studio_unlock`; reviewed settings-reset recovery image.
 
-Decisions match `security/audit/feature-matrix.md`: `official` for keymap editing, layer management, static macros/combos, encoder rotation, pointing/smooth scrolling, BLE profiles, endpoint selection, fixed idle/deep-sleep policy, and USB/BLE Studio; `remove` for the uninstantiated runtime-input module, generic split-event relay, and disabled battery-history module; `defer` for runtime encoder rebinding and the DYA custom RPC client/UI. There is no `retain-module` or `core-fork-exception`. Consider a client/messages fork only if a deferred custom RPC capability is later approved. Retain Cormoran core only if a future matrix row cites both a missing official/module interface and a concrete user requirement; no current row does.
+Decisions match all 17 rows in `security/audit/feature-matrix.md`: `official` (10) for keymap editing, layer management, static macros/combos, encoder rotation, pointing/smooth scrolling, physical BLE profile operations, endpoint selection, fixed idle/deep-sleep policy, and USB/BLE Studio; `remove` (3) for the uninstantiated runtime-input module, generic split-event relay, and disabled battery-history module; `defer` (4) for runtime encoder rebinding, runtime BLE profile naming, runtime idle/deep-sleep editing, and the DYA custom RPC client/UI. There is no `retain-module` or `core-fork-exception`. Consider a client/messages fork only if a deferred custom RPC capability is later approved. Retain Cormoran core only if a future matrix row cites both a missing official/module interface and a concrete user requirement; no current row does.
 
 Migration stages:
 
@@ -229,7 +229,7 @@ Migration stages:
 5. Consider a client fork only for a retained custom RPC UI and only after closing ZMK-SEC-013 through ZMK-SEC-019.
 6. Keep the Cormoran core fork only for approved `core-fork-exception` rows; there are none.
 
-Official ZMK is a safer governance and review target, not firmware already verified safe. Task 6 built and reproduced both halves only with the current Cormoran/DYA graph. No official target build or flash exists. Official main was inspected on 2026-07-29 at `faaf39d9f59cd2a27eca3739cdd9eb197654299b` (authored 2026-07-28); its BLE Studio write callback still has the ZMK-SEC-007 zero-progress RX-ring pattern, so an upstream fix or narrowly reviewed patch plus boundary tests is a deployment gate. Every other Task 2–6 finding remains open until its specific remediation and validation passes.
+Official ZMK is a safer governance and review target, not firmware already verified safe. Task 6 built and reproduced both halves only with the current Cormoran/DYA graph. No official target build or flash exists. Official main was inspected on 2026-07-29 at `faaf39d9f59cd2a27eca3739cdd9eb197654299b` (authored 2026-07-28); its BLE Studio write callback still has the ZMK-SEC-007 zero-progress RX-ring pattern. BLE Studio deployment therefore requires a later official revision containing an upstream fix, inspection and immutable pinning of that revision, and boundary tests. No local core patch is approved; choosing one would require a `core-fork-exception` with cited missing interface and concrete user requirement. Every other Task 2–6 finding remains open until its specific remediation and validation passes.
 
 ## Limitations and Manual Validation
 
@@ -250,7 +250,7 @@ Fork delta review was also static. No Zephyr/ZMK build, sanitizer execution agai
 7. Correct wired transport disable semantics before enabling wired split in an artifact (ZMK-SEC-008).
 8. Make tap-dance ignored positions skip outer resolution and add HID-event regression coverage (ZMK-SEC-009).
 9. Remove the selected custom BLE/settings/runtime-input/relay/battery-history paths from the official baseline. If any remain in the pinned current build during migration, first enforce lock authorization, coalesce persistence, and close numeric/control-flow defects (ZMK-SEC-010 through ZMK-SEC-012).
-10. Keep DYA custom RPC UI deferred. Do not deploy a client fork until navigation/framing/mutex/header/privacy/device-selection/confirmation findings are closed (ZMK-SEC-013 through ZMK-SEC-019).
+10. Keep runtime encoder rebinding, runtime BLE profile naming, runtime idle/deep-sleep editing, and the DYA custom RPC UI deferred. Do not deploy a client fork until a concrete capability is approved and navigation/framing/mutex/header/privacy/device-selection/confirmation findings are closed (ZMK-SEC-013 through ZMK-SEC-019).
 
 After immediate remediation, advance the identical migration stages defined in the feature matrix:
 
@@ -261,7 +261,7 @@ After immediate remediation, advance the identical migration stages defined in t
 5. Consider a client fork only for an approved retained custom RPC UI.
 6. Keep Cormoran core only for an approved `core-fork-exception`; none exists.
 
-Matrix decisions remain: official keymap/layers/static macros-combos/encoder/pointing/BLE profiles/output/fixed power/Studio transports; remove runtime-input/generic relay/battery history; defer runtime encoder rebinding and DYA custom RPC UI; approve no module retention or core exception.
+Matrix decisions remain 17 rows: `official` (10) for keymap/layers/static macros-combos/encoder/pointing/physical BLE profile operations/output/fixed power/Studio transports; `remove` (3) for runtime-input/generic relay/battery history; `defer` (4) for runtime encoder rebinding/runtime BLE profile naming/runtime idle-deep-sleep editing/DYA custom RPC UI; approve no module retention or core exception.
 
 ## Audit Record
 
