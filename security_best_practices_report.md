@@ -120,3 +120,11 @@ Manual validation must confirm: intended central half, USB-only versus BLE Studi
 2. Pin all west manifest sources and CI reusable workflows/actions (ZMK-SEC-002, ZMK-SEC-004).
 3. Enable Studio locking and test physical unlock/re-lock behavior (ZMK-SEC-003).
 4. Split Studio/custom RPC settings from normal left firmware; inspect all artifact effective configs (ZMK-SEC-005).
+
+## Audit Record
+
+**Files changed:** `security_best_practices_report.md` only. No firmware, configuration, workflow, dependency, or hardware state changed.
+
+**Audit report commit:** `df60510124e2162b48f85d6945b190960513d651` (`docs: audit local ZMK security configuration`).
+
+**Concerns:** Effective artifact configuration, custom RPC authorization/parser safety, BLE Studio reachability, physical bootloader protection, and hardware lock/re-lock behavior remain unverified. Required quoted history-secret command has shell argument-shape defect; corrected all-revision scan returned zero matches.
