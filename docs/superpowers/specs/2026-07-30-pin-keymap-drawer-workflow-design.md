@@ -40,7 +40,7 @@ The portfolio uses approach 3.
 
 | ID | Review verdict | Owner / target | Planned disposition | Closure evidence |
 |---|---|---|---|---|
-| ZMK-SEC-001 | Confirmed High supply-chain risk | This repository | Pin keymap-drawer reusable workflow to audited SHA; retain scoped automatic commit flow | Workflow uses exact SHA; dispatch still commits only generated keymap output |
+| ZMK-SEC-001 | Confirmed High supply-chain risk | This repository | Pin keymap-drawer reusable workflow to audited SHA; retain automatic commit flow while acknowledging its repository-wide write token | Workflow uses exact SHA; dispatch still commits only generated keymap output |
 | ZMK-SEC-002 | Confirmed High supply-chain risk | This repository/build manifest | Replace every mutable direct/imported revision with reviewed SHAs through an owned frozen manifest/lock mechanism | Two clean `west update` runs resolve identical inventory SHAs and reproduce artifacts |
 | ZMK-SEC-003 | Confirmed High physical-management gap | This repository | Enable Studio locking; keep physical `&studio_unlock`, disconnect relock, and idle relock | Locked USB/BLE requests fail before unlock and after relock; approved requests work after physical unlock |
 | ZMK-SEC-004 | Confirmed High authorization defect | Module owners or removal path | Baseline removes DYA BLE/settings RPC modules; retain only after mutation methods become secured and bond deletion is narrowed | Effective build proves modules absent, or exhaustive pre/post-unlock mutation tests pass |
@@ -81,11 +81,13 @@ flash.
 
 ### Phase 3 — Official-ZMK Baseline
 
-7. Establish pinned official ZMK with zero DYA modules.
-8. Close ZMK-SEC-004, 008, 014, 016, and 017 through proven removal unless a
-   concrete capability requirement justifies separate upstream/module work.
-9. Require upstream closure for ZMK-SEC-009, 015, and 021 before affected
-   behavior/artifacts are trusted.
+7. Establish pinned official ZMK with zero DYA modules as one architecture
+   change.
+8. Review ZMK-SEC-004, 008, 014, 016, and 017 separately against the resulting
+   effective builds. Close each only through its own evidence/review entry;
+   shared build evidence does not merge their closure decisions.
+9. Review ZMK-SEC-009, 015, and 021 separately. Require upstream closure before
+   affected behavior/artifacts are trusted.
 
 ### Phase 4 — DYA Client and Deployment
 
@@ -122,11 +124,35 @@ Verification:
 
 ## Portfolio Completion
 
-Portfolio completion requires all 21 findings to be either:
+Portfolio disposition requires all 21 findings to be either:
 
 - fixed and verified;
 - removed with effective-build proof;
-- explicitly deferred because feature remains disabled and unreachable.
+- explicitly accepted by the user as a deferred risk while the affected feature
+  remains disabled and unreachable.
 
-No finding closes from documentation alone. No current UF2 is approved for
-flash.
+Deferred risks remain open and block enabling their affected feature. No finding
+closes from documentation alone. Full remediation completes only when every
+finding is fixed or removed with evidence. No current UF2 is approved for flash.
+
+## Implementation Plan Set
+
+- `docs/superpowers/plans/2026-07-30-zmk-sec-001-pin-keymap-drawer.md`
+  handles ZMK-SEC-001.
+- `docs/superpowers/plans/2026-07-30-zmk-supply-chain-remediation.md`
+  handles ZMK-SEC-002 and ZMK-SEC-006 as separate tasks/commits/reviews.
+- `docs/superpowers/plans/2026-07-30-zmk-local-firmware-boundaries.md`
+  handles ZMK-SEC-003, ZMK-SEC-007, and ZMK-SEC-020 separately.
+- `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md`
+  establishes the shared official baseline, then adjudicates ZMK-SEC-004,
+  ZMK-SEC-008, ZMK-SEC-009, ZMK-SEC-014, ZMK-SEC-015, ZMK-SEC-016,
+  ZMK-SEC-017, and ZMK-SEC-021 one at a time.
+- `docs/superpowers/plans/2026-07-30-upstream-zmk-security-fixes.md`
+  prepares separate upstream fixes for still-open ZMK-SEC-009 and
+  ZMK-SEC-021 before enabling BLE Studio or restoring settings-reset.
+- `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md`
+  handles ZMK-SEC-005, ZMK-SEC-010, ZMK-SEC-011, ZMK-SEC-012,
+  ZMK-SEC-013, ZMK-SEC-018, and ZMK-SEC-019 in immutable external-repository
+  workspaces.
+- `docs/superpowers/plans/2026-07-30-zmk-security-integration-gate.md`
+  performs deterministic rebuild, residual review, and manual hardware gates.
