@@ -1,6 +1,6 @@
 # Manual hardware validation checklist
 
-**Preconditions:** Build and inspect both halves before any flash recommendation. Use known-good USB data cable, charged halves, disposable host profile, and recovery copies. No check below ran during static/build audit.
+**Preconditions:** Build and inspect both halves before any flash recommendation. Production Studio target must have `CONFIG_ZMK_STUDIO_LOCKING=y` and reachable physical `&studio_unlock`; locking-disabled Studio artifact is audit evidence only, never deployment target. Use known-good USB data cable, charged halves, disposable host profile, and recovery copies. No check below ran during static/build audit.
 
 ## Recovery and startup
 
@@ -12,7 +12,7 @@
 ## BLE and Studio authorization
 
 - [ ] Pair with host; reboot; verify bonded reconnect. Clear bond from keyboard and host; verify old connection cannot send HID or reconnect.
-- [ ] With Studio locked, attempt connection and mutation. Confirm rejection before physical unlock.
+- [ ] On locking-enabled production firmware only, with Studio locked, attempt connection and mutation. Confirm rejection before physical unlock; do not use locking-disabled audit artifact for this test.
 - [ ] Trigger physical Studio unlock binding. Confirm access opens only after action, required operations work, and automatic relock occurs after configured timeout/disconnect.
 - [ ] Test USB-only Studio with BLE disabled/disconnected. Confirm expected access and no BLE fallback.
 - [ ] Test BLE-only Studio with USB disconnected. Confirm expected access and no USB fallback.
