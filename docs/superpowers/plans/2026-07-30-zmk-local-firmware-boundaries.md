@@ -116,7 +116,7 @@ gh run view "$(gh run list --workflow security-firmware-boundaries.yml \
 
 Expected: test/build pass and both effective symbols print.
 
-- [ ] **Step 5: Commit ZMK-SEC-003**
+- [x] **Step 5: Commit ZMK-SEC-003**
 
 ```bash
 git add build.yaml security/tests/test_firmware_security.py
@@ -138,7 +138,7 @@ git commit -m "build: require Studio physical unlock"
 - Consumes: base `eyelash_corne_left` shield.
 - Produces: additive `eyelash_corne_studio` shield selected only by Studio build.
 
-- [ ] **Step 1: Add failing artifact-boundary tests**
+- [x] **Step 1: Add failing artifact-boundary tests**
 
 Add:
 
@@ -180,7 +180,7 @@ Add:
         )
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 python3 security/tests/test_firmware_security.py
@@ -188,7 +188,7 @@ python3 security/tests/test_firmware_security.py
 
 Expected: add-on file missing and generic left still enables management.
 
-- [ ] **Step 3: Declare additive Studio shield**
+- [x] **Step 3: Declare additive Studio shield**
 
 Append to `Kconfig.shield`:
 
@@ -209,7 +209,7 @@ Create `eyelash_corne_studio.overlay`:
 };
 ```
 
-- [ ] **Step 4: Move management symbols into add-on conf**
+- [x] **Step 4: Move management symbols into add-on conf**
 
 Create `eyelash_corne_studio.conf`:
 
@@ -229,7 +229,7 @@ Delete the corresponding symbols from `eyelash_corne_left.conf`. Keep
 `CONFIG_ZMK_RUNTIME_SENSOR_ROTATE=y`, `CONFIG_SETTINGS=y`, split settings, encoder,
 power, and battery-disabled symbols in generic left.
 
-- [ ] **Step 5: Select add-on shield only for Studio build**
+- [x] **Step 5: Select add-on shield only for Studio build**
 
 Change Studio entry:
 

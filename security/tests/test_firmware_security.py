@@ -22,6 +22,42 @@ class FirmwareSecurityTests(unittest.TestCase):
         self.assertNotIn("-DCONFIG_ZMK_STUDIO_LOCKING=n", matrix)
         self.assertIn("&studio_unlock", KEYMAP.read_text(encoding="utf-8"))
 
+    def test_generic_left_excludes_management_interfaces(self) -> None:
+        left = LEFT_CONF.read_text(encoding="utf-8")
+        forbidden = (
+            "CONFIG_ZMK_STUDIO=",
+            "CONFIG_ZMK_BLE_MANAGEMENT=",
+            "CONFIG_ZMK_BLE_MANAGEMENT_STUDIO_RPC=",
+            "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR=",
+            "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_STUDIO_RPC=",
+            "CONFIG_ZMK_SETTINGS_RPC=",
+            "CONFIG_ZMK_SETTINGS_RPC_STUDIO=",
+            "CONFIG_ZMK_RUNTIME_SENSOR_ROTATE_STUDIO_RPC=",
+        )
+        for symbol in forbidden:
+            self.assertNotIn(symbol, left)
+
+    def test_studio_add_on_owns_management_interfaces(self) -> None:
+        studio = STUDIO_CONF.read_text(encoding="utf-8")
+        required = (
+            "CONFIG_ZMK_STUDIO=y",
+            "CONFIG_ZMK_BLE_MANAGEMENT=y",
+            "CONFIG_ZMK_BLE_MANAGEMENT_STUDIO_RPC=y",
+            "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR=y",
+            "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_STUDIO_RPC=y",
+            "CONFIG_ZMK_SETTINGS_RPC=y",
+            "CONFIG_ZMK_SETTINGS_RPC_STUDIO=y",
+            "CONFIG_ZMK_RUNTIME_SENSOR_ROTATE_STUDIO_RPC=y",
+        )
+        for symbol in required:
+            self.assertIn(symbol, studio)
+
+        matrix = BUILD_MATRIX.read_text(encoding="utf-8")
+        self.assertIn(
+            "shield: eyelash_corne_left eyelash_corne_studio nice_view",
+            matrix,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

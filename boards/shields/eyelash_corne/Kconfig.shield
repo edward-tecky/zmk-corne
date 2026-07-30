@@ -6,3 +6,6 @@ config SHIELD_EYELASH_CORNE_LEFT
 
 config SHIELD_EYELASH_CORNE_RIGHT
     def_bool $(shields_list_contains,eyelash_corne_right)
+
+config SHIELD_EYELASH_CORNE_STUDIO
+    def_bool $(shields_list_contains,eyelash_corne_studio)
