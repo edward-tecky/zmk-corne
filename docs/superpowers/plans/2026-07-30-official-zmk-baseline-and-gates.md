@@ -6,7 +6,8 @@
 
 **Architecture:** Generate a frozen west manifest from official ZMK commit `faaf39d9f59cd2a27eca3739cdd9eb197654299b`, convert the encoder to official sensor rotation, and remove every DYA include/Kconfig/module. Disable BLE Studio because that official revision retains ZMK-SEC-009; remove settings-reset from distributable artifacts while ZMK-SEC-021 remains unresolved. One migration commit creates shared evidence; each finding receives an individual verdict in a committed evidence matrix.
 
-**Tech Stack:** Official ZMK, west 1.5.0, Zephyr SDK 0.16.3, Devicetree/Kconfig, Python 3 `unittest`
+**Tech Stack:** Official ZMK, west 1.5.0, repository-owned GitHub Actions,
+Devicetree/Kconfig, Python 3 `unittest`
 
 ## Global Constraints
 
@@ -16,7 +17,11 @@
 - Baseline contains no Cormoran core fork and no DYA firmware module.
 - Disable BLE Studio until a later reviewed official commit fixes ZMK-SEC-009.
 - Do not distribute or flash settings-reset while ZMK-SEC-021 remains open.
-- Build normal right and locked USB-Studio left twice from clean frozen inputs.
+- Build normal right, ordinary left, locked USB-Studio left, and settings-reset
+  validation targets from clean frozen inputs in repository-owned CI.
+- Publish no validation firmware artifacts. Keep distributable `build.yaml`
+  limited to ordinary right.
+- Push only to `edward-tecky/zmk-corne`; open no pull requests.
 - No flash during this plan.
 - Shared build evidence may support several findings, but record each verdict separately.
 
@@ -29,7 +34,8 @@
 - Modify `config/eyelash_corne.keymap`: official sensor-rotate behavior.
 - Modify left/right overlays and conf files: remove DYA includes/symbols.
 - Modify `boards/shields/eyelash_corne/eyelash_corne_studio.conf`: official Studio only, BLE transport disabled.
-- Modify `build.yaml`: normal right plus locked USB Studio-left; remove settings-reset distribution.
+- Modify `security/build-firmware-boundaries.yaml`: locked USB Studio-left
+  validation; settings-reset remains non-published for ZMK-SEC-021 testing.
 - Create `security/audit/official-baseline-evidence.md`: immutable manifest digest, build hashes, effective configs, and separate finding verdicts.
 
 ### Task 1: Generate Frozen Official Manifest
@@ -42,7 +48,7 @@
 - Consumes: official ZMK SHA.
 - Produces: frozen root manifest whose every project revision is a 40-character SHA.
 
-- [ ] **Step 1: Write failing manifest test**
+- [x] **Step 1: Write failing manifest test**
 
 ```python
 from pathlib import Path
@@ -76,7 +82,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 python3 security/tests/test_official_baseline.py
@@ -84,7 +90,7 @@ python3 security/tests/test_official_baseline.py
 
 Expected: current manifest contains Cormoran and fewer than the frozen official graph projects.
 
-- [ ] **Step 3: Generate candidate and freeze it**
+- [x] **Step 3: Generate candidate and freeze it**
 
 ```bash
 rm -rf /tmp/zmk-official-freeze
@@ -112,7 +118,7 @@ cp /tmp/zmk-official-freeze/frozen.yml config/west.yml
 
 Open generated file and ensure `self.path` remains `config`; change only that field if west emitted a different manifest path.
 
-- [ ] **Step 4: Verify GREEN and deterministic graph**
+- [x] **Step 4: Verify GREEN and deterministic graph**
 
 ```bash
 python3 security/tests/test_official_baseline.py
@@ -139,14 +145,14 @@ Expected: tests pass and frozen graphs match.
 - Modify: `boards/shields/eyelash_corne/eyelash_corne_left.overlay`
 - Modify: `boards/shields/eyelash_corne/eyelash_corne_right.overlay`
 - Modify: left/right/Studio `.conf`
-- Modify: `build.yaml`
+- Modify: `security/build-firmware-boundaries.yaml`
 - Modify: `security/tests/test_official_baseline.py`
 
 **Interfaces:**
 - Consumes: official behaviors and locked additive Studio shield.
 - Produces: zero-DYA local configuration with USB-only Studio.
 
-- [ ] **Step 1: Add failing absence/official-feature tests**
+- [x] **Step 1: Add failing absence/official-feature tests**
 
 ```python
     def test_local_configuration_contains_no_dya_interfaces(self) -> None:
@@ -183,7 +189,7 @@ Expected: tests pass and frozen graphs match.
         self.assertNotIn("settings_reset", BUILD.read_text())
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 python3 security/tests/test_official_baseline.py
@@ -191,7 +197,7 @@ python3 security/tests/test_official_baseline.py
 
 Expected: custom includes/symbols remain; keymap uses runtime behavior; settings-reset remains distributed.
 
-- [ ] **Step 3: Convert encoder behavior**
+- [x] **Step 3: Convert encoder behavior**
 
 Replace runtime behavior include with:
 
@@ -215,7 +221,7 @@ Replace every `sensor-bindings = <&rsr_vol>;` with:
 sensor-bindings = <&encoder_volume>;
 ```
 
-- [ ] **Step 4: Remove DYA overlay includes and symbols**
+- [x] **Step 4: Remove DYA overlay includes and symbols**
 
 Delete `battery_history_request.dtsi`, `runtime-input-processor.dtsi`, and custom
 processor includes from left/right overlays. Delete all `ZMK_BLE_MANAGEMENT`,
@@ -230,42 +236,25 @@ CONFIG_ZMK_STUDIO=y
 CONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
 ```
 
-- [ ] **Step 5: Remove settings-reset artifact**
+- [x] **Step 5: Keep distributable settings-reset absent**
 
-Keep only normal right and locked Studio-left entries in `build.yaml`. Preserve:
+Keep `build.yaml` limited to ordinary right. In unpublished
+`security/build-firmware-boundaries.yaml`, preserve:
 
 ```yaml
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
 ```
 
-- [ ] **Step 6: Run tests and build twice**
+- [ ] **Step 6: Run tests and repository-owned CI**
 
 ```bash
 python3 security/tests/test_official_baseline.py
+python3 security/tests/test_workflow_security.py
 git diff --check
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-for pass in first second; do
-  (
-    cd /tmp/zmk-official-freeze
-    /tmp/zmk-official-venv/bin/west build -p always -s zmk/app \
-      -d "/tmp/official-$pass-right" -b nice_nano_v2 -- \
-      -DZMK_CONFIG="$REPO_ROOT/config" -DZMK_EXTRA_MODULES="$REPO_ROOT" \
-      '-DSHIELD=eyelash_corne_right nice_view'
-    /tmp/zmk-official-venv/bin/west build -p always -s zmk/app \
-      -d "/tmp/official-$pass-studio" -b nice_nano_v2 \
-      -S studio-rpc-usb-uart -- \
-      -DZMK_CONFIG="$REPO_ROOT/config" -DZMK_EXTRA_MODULES="$REPO_ROOT" \
-      '-DSHIELD=eyelash_corne_left eyelash_corne_studio nice_view' \
-      -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y \
-      -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
-  )
-done
-sha256sum /tmp/official-{first,second}-{right,studio}/zephyr/zmk.uf2
-cmp /tmp/official-first-right/zephyr/zmk.uf2 \
-  /tmp/official-second-right/zephyr/zmk.uf2
-cmp /tmp/official-first-studio/zephyr/zmk.uf2 \
-  /tmp/official-second-studio/zephyr/zmk.uf2
+git push origin main
+gh run watch "$(gh run list --workflow security-firmware-boundaries.yml \
+  --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
 ```
 
 Expected: all builds pass and each pair is identical.
@@ -273,7 +262,8 @@ Expected: all builds pass and each pair is identical.
 - [ ] **Step 7: Commit migration implementation**
 
 ```bash
-git add config/west.yml config/eyelash_corne.keymap build.yaml \
+git add config/west.yml config/eyelash_corne.keymap \
+  security/build-firmware-boundaries.yaml \
   boards/shields/eyelash_corne security/tests/test_official_baseline.py
 git diff --cached --check
 git commit -m "build: establish official ZMK baseline"

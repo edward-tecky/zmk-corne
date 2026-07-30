@@ -42,13 +42,7 @@ class FirmwareSecurityTests(unittest.TestCase):
         studio = STUDIO_CONF.read_text(encoding="utf-8")
         required = (
             "CONFIG_ZMK_STUDIO=y",
-            "CONFIG_ZMK_BLE_MANAGEMENT=y",
-            "CONFIG_ZMK_BLE_MANAGEMENT_STUDIO_RPC=y",
-            "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR=y",
-            "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR_STUDIO_RPC=y",
-            "CONFIG_ZMK_SETTINGS_RPC=y",
-            "CONFIG_ZMK_SETTINGS_RPC_STUDIO=y",
-            "CONFIG_ZMK_RUNTIME_SENSOR_ROTATE_STUDIO_RPC=y",
+            "CONFIG_ZMK_STUDIO_TRANSPORT_BLE=n",
         )
         for symbol in required:
             self.assertIn(symbol, studio)
@@ -58,12 +52,17 @@ class FirmwareSecurityTests(unittest.TestCase):
             "shield: eyelash_corne_left eyelash_corne_studio nice_view",
             matrix,
         )
+        self.assertNotIn("CONFIG_ZMK_BLE_MANAGEMENT", studio)
+        self.assertNotIn("CONFIG_ZMK_SETTINGS_RPC", studio)
 
     def test_each_layer_has_one_physical_encoder_binding(self) -> None:
         keymap = KEYMAP.read_text(encoding="utf-8")
         bindings = re.findall(r"sensor-bindings\s*=\s*<([^>]+)>;", keymap)
         self.assertEqual(4, len(bindings))
-        self.assertEqual(["&rsr_vol"] * 4, [" ".join(x.split()) for x in bindings])
+        self.assertEqual(
+            ["&encoder_volume"] * 4,
+            [" ".join(x.split()) for x in bindings],
+        )
         self.assertNotIn("rsr_trans:", keymap)
 
 

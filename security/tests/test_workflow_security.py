@@ -116,65 +116,26 @@ class WorkflowSecurityTests(unittest.TestCase):
             re.compile(r"(?m)^\s*uses:\s+[^./][^@\s]*@(main|master|v\d+)"),
         )
 
-    def test_west_projects_use_audited_revisions(self) -> None:
+    def test_west_manifest_is_frozen_official_graph(self) -> None:
         manifest = WEST_MANIFEST.read_text(encoding="utf-8")
+        revisions = re.findall(r"(?m)^\s+revision:\s+(\S+)", manifest)
 
-        for name, revision in AUDITED_WEST_REVISIONS.items():
-            block_match = re.search(
-                rf"(?ms)^\s{{4}}- name: {re.escape(name)}\s*$"
-                rf"(?P<body>.*?)(?=^\s{{4}}- name:|^\s{{2}}self:)",
-                manifest,
-            )
-            self.assertIsNotNone(block_match, name)
-            self.assertRegex(
-                block_match.group("body"),
-                rf"(?m)^[ \t]{{6}}revision:[ \t]+{revision}"
-                r"(?:[ \t]+#[^\r\n]*)?[ \t]*$",
-                name,
-            )
-
-        zephyr = re.search(
-            r"(?ms)^\s{4}- name: zephyr\s*$"
-            r"(?P<body>.*?)(?=^\s{4}- name:|^\s{2}self:)",
-            manifest,
-        )
-        self.assertIsNotNone(zephyr)
-        self.assertRegex(
-            zephyr.group("body"),
-            r"(?m)^\s{6}import:\s*$"
-            r"\n\s{8}name-blocklist:\s*$"
-            r"\n\s{10}- nanopb\s*$",
-        )
-        self.assertRegex(
-            zephyr.group("body"),
-            r"(?m)^\s{6}west-commands:\s+scripts/west-commands\.yml\s*$",
-        )
-
-    def test_zmk_nanopb_wins_manifest_resolution_contract(self) -> None:
-        rows = [
-            line.split("\t")
-            for line in DEPENDENCY_INVENTORY.read_text(encoding="utf-8").splitlines()[1:]
-            if line.startswith("nanopb\t")
-        ]
-        active = [
-            row
-            for row in rows
-            if row[1] == "zmkfirmware/nanopb"
-            and "active" in row[7]
-            and "not optional" in row[7]
-        ]
-
-        self.assertEqual(len(active), 1)
-        self.assertEqual(active[0][2], AUDITED_NANOPB_SHA)
-        self.assertEqual(active[0][3], AUDITED_NANOPB_SHA)
-        self.assertEqual(active[0][4], "no")
-        self.assertEqual(active[0][5], "modules/lib/nanopb")
+        self.assertIn("url: https://github.com/zmkfirmware/zmk", manifest)
+        self.assertNotIn("cormoran", manifest.lower())
+        self.assertGreater(len(revisions), 10)
         self.assertTrue(
-            any(
-                row[1] == "zephyrproject-rtos/nanopb"
-                and "blocked by root Zephyr name-blocklist" in row[6]
-                for row in rows
-            )
+            all(re.fullmatch(r"[0-9a-f]{40}", revision) for revision in revisions)
+        )
+
+    def test_frozen_manifest_has_single_nanopb_project(self) -> None:
+        manifest = WEST_MANIFEST.read_text(encoding="utf-8")
+        self.assertEqual(
+            len(re.findall(r"(?m)^\s*-\s+name:\s+nanopb\s*$", manifest)),
+            1,
+        )
+        self.assertIn(
+            "url: https://github.com/zephyrproject-rtos/nanopb",
+            manifest,
         )
 
     def test_draw_workflow_is_pinned_and_keeps_commit_contract(self) -> None:

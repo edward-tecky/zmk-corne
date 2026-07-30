@@ -1,0 +1,63 @@
+from pathlib import Path
+import re
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[2]
+WEST = ROOT / "config" / "west.yml"
+KEYMAP = ROOT / "config" / "eyelash_corne.keymap"
+BUILD = ROOT / "build.yaml"
+SECURITY_BUILD = ROOT / "security" / "build-firmware-boundaries.yaml"
+SHIELD_ROOT = ROOT / "boards" / "shields" / "eyelash_corne"
+OFFICIAL_ZMK_SHA = "faaf39d9f59cd2a27eca3739cdd9eb197654299b"
+
+
+class OfficialBaselineTests(unittest.TestCase):
+    def test_manifest_uses_only_full_sha_revisions_and_official_zmk(self) -> None:
+        manifest = WEST.read_text(encoding="utf-8")
+        self.assertIn("url: https://github.com/zmkfirmware/zmk", manifest)
+        self.assertRegex(
+            manifest,
+            rf"(?ms)- name: zmk\b.*?revision: {OFFICIAL_ZMK_SHA}\b",
+        )
+        self.assertNotIn("cormoran", manifest.lower())
+        revisions = re.findall(r"(?m)^\s+revision:\s+(\S+)", manifest)
+        self.assertGreater(len(revisions), 10)
+        self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", x) for x in revisions))
+
+    def test_local_configuration_contains_no_dya_interfaces(self) -> None:
+        files = [
+            KEYMAP,
+            SHIELD_ROOT / "eyelash_corne_left.overlay",
+            SHIELD_ROOT / "eyelash_corne_right.overlay",
+            SHIELD_ROOT / "eyelash_corne_left.conf",
+            SHIELD_ROOT / "eyelash_corne_right.conf",
+            SHIELD_ROOT / "eyelash_corne_studio.conf",
+        ]
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in files)
+        forbidden = (
+            "runtime-sensor-rotate",
+            "runtime-input-processor",
+            "battery_history_request",
+            "ZMK_BLE_MANAGEMENT",
+            "ZMK_SETTINGS_RPC",
+            "ZMK_SPLIT_RELAY_EVENT",
+        )
+        for token in forbidden:
+            self.assertNotIn(token, combined)
+
+    def test_official_encoder_and_usb_only_locked_studio(self) -> None:
+        keymap = KEYMAP.read_text(encoding="utf-8")
+        self.assertIn('compatible = "zmk,behavior-sensor-rotate";', keymap)
+        self.assertIn("bindings = <&kp C_VOL_UP>, <&kp C_VOL_DN>;", keymap)
+        studio = (
+            SHIELD_ROOT / "eyelash_corne_studio.conf"
+        ).read_text(encoding="utf-8")
+        self.assertIn("CONFIG_ZMK_STUDIO=y", studio)
+        self.assertIn("CONFIG_ZMK_STUDIO_TRANSPORT_BLE=n", studio)
+        self.assertIn("CONFIG_ZMK_STUDIO_LOCKING=y", SECURITY_BUILD.read_text())
+        self.assertNotIn("settings_reset", BUILD.read_text())
+
+
+if __name__ == "__main__":
+    unittest.main()
