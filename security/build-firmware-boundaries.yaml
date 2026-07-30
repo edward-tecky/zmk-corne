@@ -1,13 +1,13 @@
 ---
 include:
-  - board: nice_nano_v2
+  - board: nice_nano//zmk
     shield: eyelash_corne_right nice_view
-  - board: nice_nano_v2
+  - board: nice_nano//zmk
     shield: eyelash_corne_left nice_view
-  - board: nice_nano_v2
+  - board: nice_nano//zmk
     shield: eyelash_corne_left eyelash_corne_studio nice_view
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
     artifact-name: eyelash_corne_studio_left
-  - board: nice_nano_v2
+  - board: nice_nano//zmk
     shield: settings_reset

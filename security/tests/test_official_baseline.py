@@ -58,6 +58,12 @@ class OfficialBaselineTests(unittest.TestCase):
         self.assertIn("CONFIG_ZMK_STUDIO_LOCKING=y", SECURITY_BUILD.read_text())
         self.assertNotIn("settings_reset", BUILD.read_text())
 
+    def test_build_matrices_use_official_hwmv2_board_id(self) -> None:
+        matrices = BUILD.read_text() + "\n" + SECURITY_BUILD.read_text()
+        self.assertIn("board: nice_nano//zmk", BUILD.read_text())
+        self.assertEqual(matrices.count("board: nice_nano//zmk"), 5)
+        self.assertNotIn("board: nice_nano_v2", matrices)
+
 
 if __name__ == "__main__":
     unittest.main()
