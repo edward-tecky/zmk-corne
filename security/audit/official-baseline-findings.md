@@ -62,7 +62,7 @@
 | Locked USB Studio-left | `24618d7d2d90db6186aa353806b73b29e5a9144485a19643373b55a85e40ee08` |
 | Settings-reset validation | `001a0e3a33055c2a50dc132f3e1de09c1c448071a896649221c74f182f49be16` |
 
-ZMK-SEC-009 and ZMK-SEC-021 move from accepted deferral to `in-review`.
-Software and deterministic-build gates pass. BLE Studio remains disabled until
-its encrypted hardware boundary test; settings-reset remains undistributed
-until its manual recovery test.
+ZMK-SEC-009 and ZMK-SEC-021 retain their accepted `deferred-open` state until
+hardware closes their residual gates. Software and deterministic-build gates
+pass. BLE Studio remains disabled until its encrypted hardware boundary test;
+settings-reset remains undistributed until its manual recovery test.

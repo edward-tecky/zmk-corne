@@ -40,9 +40,9 @@ Updated 2026-07-31:
   `0ebe524c795dcfaeb30ed7d7c1570732dcd8abf4`. Independent review found no
   Critical or Important issues. Push and exact-source repeat runs
   30576318651/30576777245 and 30576318713/30576779722 passed with deterministic
-  hashes. ZMK-SEC-009 and ZMK-SEC-021 are `in-review`; their remaining gates
-  require hardware, so BLE Studio stays disabled and settings-reset stays
-  undistributed.
+  hashes. ZMK-SEC-009 and ZMK-SEC-021 retain accepted `deferred-open` status;
+  their remaining gates require hardware, so BLE Studio stays disabled and
+  settings-reset stays undistributed.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
   `python3 security/tests/test_workflow_security.py` (6 tests) because three

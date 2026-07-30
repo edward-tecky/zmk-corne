@@ -2,12 +2,14 @@
 
 ## Pre-flash gate
 
-- Source commit: `7297a06969009ec7824826d44dde9df4becaeb88`
+- Source commit: `0ebe524c795dcfaeb30ed7d7c1570732dcd8abf4`
 - Frozen manifest SHA-256:
-  `99746c675897454a044c335eb9741b0f0d30d808b1fe70944a0aa471b9f481d3`
-- Exact-source CI runs: `30561289211`, `30561292657`
+  `ba267cda5f167ed251f9092c905597fb0ec6253bb64c9c53a24335754f6cc146`
+- Exact-source boundary CI runs: `30576318713`, `30576779722`
 - Both runs: success
-- Uploaded firmware artifacts: zero
+- Boundary-run uploaded firmware artifacts: zero
+- Distributable runs `30576318651` and `30576777245` uploaded only the ordinary
+  right candidate; no Studio-left or settings-reset artifact was uploaded.
 - Flash approval: **not granted**
 
 ## Deterministic validation hashes
@@ -15,9 +17,9 @@
 | Target | SHA-256 in both runs | Flash status |
 |---|---|---|
 | Right | `20566c8128be9d50ca34c0e214966ba91af4d3f436245935fafad844b45e26dd` | Candidate; requires exact-hash approval |
-| Ordinary left | `978b2659bbf443f856d96f2f6885d6fc988e8d029fe2568ed4ebc124037c2ab8` | Validation only |
-| Locked USB Studio-left | `004636e8cee9888f399fc64a1f19a722e06af21d011b737a8e54d656b9bc68de` | Candidate; requires exact-hash approval |
-| Settings-reset | `157e0cd816e5876f0e659010e754cc582e23281b94888e538e21297ada2755cc` | Validation only; undistributed |
+| Ordinary left | `fec3be7ac31a6d9230e64f72737fe06ee07cd5d93d2ec27d5a428bc0812550e4` | Validation only |
+| Locked USB Studio-left | `24618d7d2d90db6186aa353806b73b29e5a9144485a19643373b55a85e40ee08` | Candidate; requires exact-hash approval |
+| Settings-reset | `001a0e3a33055c2a50dc132f3e1de09c1c448071a896649221c74f182f49be16` | Validation only; undistributed |
 
 ## Residual controls
 
