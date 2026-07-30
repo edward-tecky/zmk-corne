@@ -49,10 +49,11 @@ AUDITED_WEST_REVISIONS = {
         "dbf92f764de8b6ffd60bf5850514302875fe2570"
     ),
 }
+APPROVED_FIRMWARE_SOURCE = "72e4df5041a6ac7380385ddcd38cb858d7f4c340"
 
 
 class WorkflowSecurityTests(unittest.TestCase):
-    def test_firmware_validation_is_repo_owned_and_publishes_nothing(self) -> None:
+    def test_firmware_validation_is_repo_owned_and_push_publishes_nothing(self) -> None:
         workflow = FIRMWARE_SECURITY_WORKFLOW.read_text(encoding="utf-8")
         reusable = PINNED_BUILD_WORKFLOW.read_text(encoding="utf-8")
 
@@ -61,13 +62,40 @@ class WorkflowSecurityTests(unittest.TestCase):
             workflow,
         )
         self.assertIn("build_matrix_path: security/build-firmware-boundaries.yaml", workflow)
-        self.assertIn("upload_artifacts: false", workflow)
+        self.assertIn("default: false", workflow)
+        self.assertIn(
+            "upload_artifacts: ${{ inputs.export_approved_artifacts }}",
+            workflow,
+        )
         self.assertRegex(workflow, re.compile(r"(?m)^\s+contents:\s+read\s*$"))
         self.assertNotRegex(workflow, re.compile(r"(?m)^\s+contents:\s+write\s*$"))
         self.assertIn("upload_artifacts:", reusable)
         self.assertIn("if: inputs.upload_artifacts", reusable)
         self.assertIn("Firmware SHA-256", reusable)
         self.assertIn("sha256sum", reusable)
+
+    def test_firmware_export_is_manual_and_bound_to_approved_source(self) -> None:
+        workflow = FIRMWARE_SECURITY_WORKFLOW.read_text(encoding="utf-8")
+        reusable = PINNED_BUILD_WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertRegex(
+            workflow,
+            re.compile(
+                r"workflow_dispatch:\s*\n"
+                r"\s+inputs:\s*\n"
+                r"\s+export_approved_artifacts:\s*\n"
+                r"(?:\s+.*\n)*?"
+                r"\s+type:\s+boolean\s*\n"
+                r"\s+default:\s+false",
+            ),
+        )
+        self.assertIn(APPROVED_FIRMWARE_SOURCE, workflow)
+        self.assertIn(
+            "upload_artifacts: ${{ inputs.export_approved_artifacts }}",
+            workflow,
+        )
+        self.assertIn("source_ref:", reusable)
+        self.assertEqual(reusable.count("ref: ${{ inputs.source_ref }}"), 2)
 
     def test_firmware_validation_matrix_has_all_required_boundaries(self) -> None:
         matrix = FIRMWARE_SECURITY_MATRIX.read_text(encoding="utf-8")
@@ -108,6 +136,7 @@ class WorkflowSecurityTests(unittest.TestCase):
         )
         self.assertRegex(caller, re.compile(r"(?m)^\s+contents:\s+read\s*$"))
         self.assertNotIn("zmkfirmware/zmk/.github/workflows/", caller)
+        self.assertIn("source_ref: ${{ github.sha }}", caller)
 
     def test_reusable_build_sanitizes_artifact_path_components(self) -> None:
         workflow = PINNED_BUILD_WORKFLOW.read_text(encoding="utf-8")

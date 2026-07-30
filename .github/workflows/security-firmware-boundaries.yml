@@ -2,6 +2,12 @@ name: Validate firmware security boundaries
 
 on:
   workflow_dispatch:
+    inputs:
+      export_approved_artifacts:
+        description: "Export artifacts from the exact user-approved source"
+        required: true
+        type: boolean
+        default: false
   push:
     paths:
       - ".github/workflows/build-user-config-pinned.yml"
@@ -17,4 +23,6 @@ jobs:
     uses: ./.github/workflows/build-user-config-pinned.yml
     with:
       build_matrix_path: security/build-firmware-boundaries.yaml
-      upload_artifacts: false
+      archive_name: approved-firmware-72e4df5
+      source_ref: ${{ inputs.export_approved_artifacts && '72e4df5041a6ac7380385ddcd38cb858d7f4c340' || github.sha }}
+      upload_artifacts: ${{ inputs.export_approved_artifacts }}

@@ -10,3 +10,5 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/build-user-config-pinned.yml
+    with:
+      source_ref: ${{ github.sha }}
