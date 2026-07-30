@@ -29,7 +29,10 @@ Updated 2026-07-30:
   30539334928 produced identical four-target hashes and uploaded no artifacts.
   Six Cormoran/DYA findings are removed; ZMK-SEC-009 and ZMK-SEC-021 remain
   in-review with affected artifacts disabled/undistributed.
-- Tasks 5–6 pending.
+- Task 5 complete. Client lane evidence remains verified; user explicitly
+  accepted ZMK-SEC-009 and ZMK-SEC-021 as `deferred-open` on 2026-07-31 with
+  BLE Studio disabled and settings-reset undistributed.
+- Task 6 pending.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
   `python3 security/tests/test_workflow_security.py` (6 tests) because three
@@ -334,13 +337,13 @@ git commit -m "docs: record official ZMK finding verdicts"
 - Consumes: DYA child-plan commits, test logs, deployment evidence, official firmware verdicts.
 - Produces: complete 21-row software disposition ready for integration.
 
-- [ ] **Step 1: Verify DYA lane completion**
+- [x] **Step 1: Verify DYA lane completion**
 
 Require exact base and result SHAs for `zmk-studio-ts-client`,
 `react-zmk-studio`, and `dya-studio`; require passing commands from all eight DYA
 tasks. Record production isolation/header evidence for ZMK-SEC-012.
 
-- [ ] **Step 2: Validate portfolio status**
+- [x] **Step 2: Validate portfolio status**
 
 ```bash
 python3 - <<'PY'
@@ -362,13 +365,13 @@ git diff --check
 Any `deferred-open` row requires explicit user acceptance text in `Evidence` and
 must name its disabled feature in `Residual gate`.
 
-- [ ] **Step 3: Obtain software-gate review**
+- [x] **Step 3: Obtain software-gate review**
 
 Review every ledger row against report evidence, child-plan test output, exact
 commit, and reviewer decision. Reopen any row whose evidence proves only
 documentation or configuration intent.
 
-- [ ] **Step 4: Commit software-gate ledger**
+- [x] **Step 4: Commit software-gate ledger**
 
 ```bash
 git add security/audit/remediation-ledger.md
