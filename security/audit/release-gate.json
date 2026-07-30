@@ -29,6 +29,13 @@
     "ZMK-SEC-009": "BLE Studio enabled only in locked undistributed hardware candidate; authorization tests pending",
     "ZMK-SEC-021": "settings-reset undistributed"
   },
-  "flash_approved": false,
+  "flash_approved": true,
+  "flash_approval": {
+    "date": "2026-07-31",
+    "timezone": "Asia/Hong_Kong",
+    "right_sha256": "20566c8128be9d50ca34c0e214966ba91af4d3f436245935fafad844b45e26dd",
+    "studio_left_sha256": "35f88000124255e2769071426821d464d7d3a890c45d85b0860fdb840d7e8ca3",
+    "settings_reset_sha256": "001a0e3a33055c2a50dc132f3e1de09c1c448071a896649221c74f182f49be16"
+  },
   "hardware_complete": false
 }

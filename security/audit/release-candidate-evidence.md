@@ -10,7 +10,9 @@
 - Boundary-run uploaded firmware artifacts: zero
 - Distributable run `30579742076` uploaded only the ordinary right candidate;
   no Studio-left or settings-reset artifact was uploaded.
-- Flash approval: **not granted**
+- Flash approval: **granted 2026-07-31 (Asia/Hong_Kong)**
+- Approval text:
+  `I approve flashing Right SHA 20566c8128be9d50ca34c0e214966ba91af4d3f436245935fafad844b45e26dd, Studio-left SHA 35f88000124255e2769071426821d464d7d3a890c45d85b0860fdb840d7e8ca3, and settings-reset SHA 001a0e3a33055c2a50dc132f3e1de09c1c448071a896649221c74f182f49be16.`
 
 ## Deterministic validation hashes
 
