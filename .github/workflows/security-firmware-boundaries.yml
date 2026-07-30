@@ -1,0 +1,20 @@
+name: Validate firmware security boundaries
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/build-user-config-pinned.yml"
+      - ".github/workflows/security-firmware-boundaries.yml"
+      - "boards/**"
+      - "config/**"
+      - "security/build-firmware-boundaries.yaml"
+
+jobs:
+  build:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-user-config-pinned.yml
+    with:
+      build_matrix_path: security/build-firmware-boundaries.yaml
+      upload_artifacts: false

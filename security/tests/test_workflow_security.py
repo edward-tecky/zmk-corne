@@ -11,6 +11,10 @@ DRAW_WORKFLOW_SOURCE = (
 )
 BUILD_CALLER = ROOT / ".github" / "workflows" / "build.yml"
 BUILD_MATRIX = ROOT / "build.yaml"
+FIRMWARE_SECURITY_WORKFLOW = (
+    ROOT / ".github" / "workflows" / "security-firmware-boundaries.yml"
+)
+FIRMWARE_SECURITY_MATRIX = ROOT / "security" / "build-firmware-boundaries.yaml"
 PINNED_BUILD_WORKFLOW = (
     ROOT / ".github" / "workflows" / "build-user-config-pinned.yml"
 )
@@ -48,6 +52,35 @@ AUDITED_WEST_REVISIONS = {
 
 
 class WorkflowSecurityTests(unittest.TestCase):
+    def test_firmware_validation_is_repo_owned_and_publishes_nothing(self) -> None:
+        workflow = FIRMWARE_SECURITY_WORKFLOW.read_text(encoding="utf-8")
+        reusable = PINNED_BUILD_WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "uses: ./.github/workflows/build-user-config-pinned.yml",
+            workflow,
+        )
+        self.assertIn("build_matrix_path: security/build-firmware-boundaries.yaml", workflow)
+        self.assertIn("upload_artifacts: false", workflow)
+        self.assertRegex(workflow, re.compile(r"(?m)^\s+contents:\s+read\s*$"))
+        self.assertNotRegex(workflow, re.compile(r"(?m)^\s+contents:\s+write\s*$"))
+        self.assertIn("upload_artifacts:", reusable)
+        self.assertIn("if: inputs.upload_artifacts", reusable)
+
+    def test_firmware_validation_matrix_has_all_required_boundaries(self) -> None:
+        matrix = FIRMWARE_SECURITY_MATRIX.read_text(encoding="utf-8")
+
+        self.assertEqual(len(re.findall(r"(?m)^\s{2}- board:", matrix)), 4)
+        for required in (
+            "shield: eyelash_corne_right nice_view",
+            "shield: eyelash_corne_left nice_view",
+            "shield: eyelash_corne_left nice_view",
+            "shield: settings_reset",
+            "-DCONFIG_ZMK_STUDIO_LOCKING=y",
+        ):
+            self.assertIn(required, matrix)
+        self.assertNotIn("-DCONFIG_ZMK_STUDIO_LOCKING=n", matrix)
+
     def test_distributable_build_matrix_only_contains_ordinary_right(self) -> None:
         matrix = BUILD_MATRIX.read_text(encoding="utf-8")
 

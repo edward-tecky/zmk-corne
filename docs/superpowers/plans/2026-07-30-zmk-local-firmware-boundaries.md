@@ -6,13 +6,17 @@
 
 **Architecture:** First enable Studio locking in the existing Studio build. Then move management Kconfig symbols from the generic left shield into an additive `eyelash_corne_studio` shield selected only by the Studio build. Finally align the single physical encoder with one `rsr_vol` binding per layer and remove the dropped `rsr_trans` declaration.
 
-**Tech Stack:** ZMK/Zephyr Kconfig, Devicetree, build matrix YAML, Python 3 `unittest`, west
+**Tech Stack:** ZMK/Zephyr Kconfig, Devicetree, build matrix YAML, Python 3
+`unittest`, repository-owned GitHub Actions
 
 ## Global Constraints
 
 - Execute each finding as a separate task, commit, and review.
 - Require user approval before each task.
-- Build right, ordinary left, locked Studio-left, and settings-reset after configuration changes.
+- Build right, ordinary left, locked Studio-left, and settings-reset after
+  configuration changes using repository-owned GitHub Actions.
+- Validation workflow must upload no firmware artifacts.
+- Push only to `edward-tecky/zmk-corne`; open no pull requests.
 - Never flash during this plan.
 - Preserve physical `&studio_unlock` at `config/eyelash_corne.keymap:91`.
 - Ordinary left and right artifacts must contain no Studio/custom management RPC.
@@ -24,7 +28,11 @@
 ## Planned File Structure
 
 - Create `security/tests/test_firmware_security.py`: static artifact-boundary and sensor-capacity contracts.
-- Modify `build.yaml`: locking and additive Studio shield selection.
+- Create `security/build-firmware-boundaries.yaml`: non-published four-artifact
+  validation matrix.
+- Create `.github/workflows/security-firmware-boundaries.yml`: CI caller.
+- Modify `.github/workflows/build-user-config-pinned.yml`: allow callers to
+  suppress artifact upload while retaining build/Kconfig/devicetree logs.
 - Modify `boards/shields/eyelash_corne/eyelash_corne_left.conf`: ordinary central hardware only.
 - Modify `boards/shields/eyelash_corne/Kconfig.shield`: declare additive Studio shield.
 - Create `boards/shields/eyelash_corne/eyelash_corne_studio.conf`: Studio/custom-management symbols.
@@ -35,7 +43,7 @@
 
 **Files:**
 - Create: `security/tests/test_firmware_security.py`
-- Modify: `build.yaml:8`
+- Modify: `security/build-firmware-boundaries.yaml`
 
 **Interfaces:**
 - Consumes: existing Studio artifact and physical `&studio_unlock`.
@@ -86,7 +94,7 @@ Expected: locking test fails because build matrix contains `LOCKING=n`.
 
 - [ ] **Step 3: Enable locking**
 
-Change `build.yaml:8` to:
+Set the Studio validation entry to:
 
 ```yaml
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y
@@ -96,18 +104,14 @@ Change `build.yaml:8` to:
 
 ```bash
 python3 security/tests/test_firmware_security.py
+python3 security/tests/test_workflow_security.py
 git diff --check
-west build -p always -s zmk/app -d /tmp/zmk-sec-003-studio \
-  -b nice_nano_v2 -S studio-rpc-usb-uart -- \
-  -DZMK_CONFIG="$PWD/config" \
-  -DZMK_EXTRA_MODULES="$PWD" \
-  '-DSHIELD=eyelash_corne_left nice_view' \
-  -DCONFIG_ZMK_STUDIO=y \
-  -DCONFIG_ZMK_STUDIO_LOCKING=y
-grep -Fx 'CONFIG_ZMK_STUDIO_LOCKING=y' \
-  /tmp/zmk-sec-003-studio/zephyr/.config
-grep -Fx 'CONFIG_ZMK_BEHAVIOR_STUDIO_UNLOCK=y' \
-  /tmp/zmk-sec-003-studio/zephyr/.config
+git push origin main
+gh run watch "$(gh run list --workflow security-firmware-boundaries.yml \
+  --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
+gh run view "$(gh run list --workflow security-firmware-boundaries.yml \
+  --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --log |
+  grep -E 'CONFIG_ZMK_STUDIO_LOCKING=y|CONFIG_ZMK_BEHAVIOR_STUDIO_UNLOCK=y'
 ```
 
 Expected: test/build pass and both effective symbols print.
@@ -127,7 +131,7 @@ git commit -m "build: require Studio physical unlock"
 - Modify: `boards/shields/eyelash_corne/Kconfig.shield`
 - Create: `boards/shields/eyelash_corne/eyelash_corne_studio.conf`
 - Create: `boards/shields/eyelash_corne/eyelash_corne_studio.overlay`
-- Modify: `build.yaml:6-9`
+- Modify: `security/build-firmware-boundaries.yaml`
 - Modify: `security/tests/test_firmware_security.py`
 
 **Interfaces:**
@@ -241,20 +245,14 @@ Change Studio entry:
 
 ```bash
 python3 security/tests/test_firmware_security.py
+python3 security/tests/test_workflow_security.py
 git diff --check
-west build -p always -s zmk/app -d /tmp/zmk-sec-007-left \
-  -b nice_nano_v2 -- -DZMK_CONFIG="$PWD/config" \
-  -DZMK_EXTRA_MODULES="$PWD" '-DSHIELD=eyelash_corne_left nice_view'
-west build -p always -s zmk/app -d /tmp/zmk-sec-007-studio \
-  -b nice_nano_v2 -S studio-rpc-usb-uart -- \
-  -DZMK_CONFIG="$PWD/config" -DZMK_EXTRA_MODULES="$PWD" \
-  '-DSHIELD=eyelash_corne_left eyelash_corne_studio nice_view' \
-  -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y
-! grep -Eq '^CONFIG_ZMK_(STUDIO|BLE_MANAGEMENT|SETTINGS_RPC)=y$' \
-  /tmp/zmk-sec-007-left/zephyr/.config
-grep -Fx 'CONFIG_ZMK_STUDIO=y' /tmp/zmk-sec-007-studio/zephyr/.config
-grep -Fx 'CONFIG_ZMK_STUDIO_LOCKING=y' \
-  /tmp/zmk-sec-007-studio/zephyr/.config
+git push origin main
+gh run watch "$(gh run list --workflow security-firmware-boundaries.yml \
+  --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
+gh run view "$(gh run list --workflow security-firmware-boundaries.yml \
+  --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --log |
+  grep -E 'CONFIG_ZMK_(STUDIO|STUDIO_LOCKING|BLE_MANAGEMENT|SETTINGS_RPC)=y'
 ```
 
 Expected: ordinary left has no management symbols; Studio artifact has Studio and locking.
@@ -315,18 +313,14 @@ sensor-bindings = <&rsr_vol>;
 
 ```bash
 python3 security/tests/test_firmware_security.py
-west build -p always -s zmk/app -d /tmp/zmk-sec-020-left \
-  -b nice_nano_v2 -- -DZMK_CONFIG="$PWD/config" \
-  -DZMK_EXTRA_MODULES="$PWD" '-DSHIELD=eyelash_corne_left nice_view' \
-  2>&1 | tee /tmp/zmk-sec-020-left.log
-west build -p always -s zmk/app -d /tmp/zmk-sec-020-studio \
-  -b nice_nano_v2 -S studio-rpc-usb-uart -- \
-  -DZMK_CONFIG="$PWD/config" -DZMK_EXTRA_MODULES="$PWD" \
-  '-DSHIELD=eyelash_corne_left eyelash_corne_studio nice_view' \
-  -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y \
-  2>&1 | tee /tmp/zmk-sec-020-studio.log
-! grep -F 'excess elements in array initializer' \
-  /tmp/zmk-sec-020-left.log /tmp/zmk-sec-020-studio.log
+python3 security/tests/test_workflow_security.py
+git diff --check
+git push origin main
+gh run watch "$(gh run list --workflow security-firmware-boundaries.yml \
+  --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --exit-status
+! gh run view "$(gh run list --workflow security-firmware-boundaries.yml \
+  --branch main --limit 1 --json databaseId --jq '.[0].databaseId')" --log |
+  grep -F 'excess elements in array initializer'
 ```
 
 Expected: tests/builds pass; excess-initializer warning absent. Hardware encoder behavior remains a later manual gate.

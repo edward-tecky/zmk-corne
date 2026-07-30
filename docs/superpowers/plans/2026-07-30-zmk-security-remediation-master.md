@@ -20,9 +20,9 @@ Updated 2026-07-30:
     disabled pending official-baseline gates.
   - DYA client Tasks 1–8 complete through ZMK-SEC-019 (`314bab6`); dependency
     pins and cross-repository integration fixtures verified.
-- Task 3 blocked before edits: `west` is not installed/on `PATH`, and no
-  initialized local ZMK workspace is available for required four-artifact
-  builds.
+- Task 3 in progress. Required four-artifact gates run in repository-owned
+  GitHub Actions, matching ZMK's documented user-config build path. Validation
+  builds publish no firmware artifacts; local `west` is not required.
 - Tasks 4–6 pending.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
@@ -35,7 +35,9 @@ Updated 2026-07-30:
 - External repositories use the immutable bases and dedicated paths specified by their child plans.
 - One finding per commit and review except the documented shared official-ZMK migration commit; shared evidence never merges finding verdicts.
 - Run relevant automated tests and `git diff --check` before every commit.
-- Build both keyboard halves after every manifest or firmware-configuration change.
+- Build both keyboard halves after every manifest or firmware-configuration
+  change. Repository-owned CI may provide this gate when no local ZMK workspace
+  exists.
 - Do not flash any artifact until the user approves its exact SHA-256.
 - Never treat documentation, an accepted deferral, or a disabled feature as a closed finding.
 - Stop a lane on failed verification, unexpected repository state, mutable dependency resolution, or scope drift.
@@ -247,12 +249,16 @@ Execute Tasks 1–3 from
 After each task, stop for its test/build gate and focused review before starting
 the next task.
 
+Use the repository-owned firmware-boundary validation workflow. It must build
+ordinary right, ordinary left, locked Studio-left, and settings-reset without
+uploading firmware artifacts. Push only to `edward-tecky/zmk-corne`; do not open
+pull requests or write to upstream repositories.
+
 - [ ] **Step 2: Confirm artifact separation**
 
 ```bash
-python3 security/tests/test_studio_locking.py
-python3 security/tests/test_studio_artifact_boundary.py
-python3 security/tests/test_encoder_binding_capacity.py
+python3 security/tests/test_firmware_security.py
+python3 security/tests/test_workflow_security.py
 git diff --check
 ```
 
