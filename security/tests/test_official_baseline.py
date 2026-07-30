@@ -64,6 +64,10 @@ class OfficialBaselineTests(unittest.TestCase):
         self.assertEqual(matrices.count("board: nice_nano//zmk"), 5)
         self.assertNotIn("board: nice_nano_v2", matrices)
 
+    def test_removed_ws2812_kconfig_symbol_is_absent(self) -> None:
+        config = (ROOT / "config" / "eyelash_corne.conf").read_text()
+        self.assertNotIn("CONFIG_WS2812_STRIP", config)
+
 
 if __name__ == "__main__":
     unittest.main()
