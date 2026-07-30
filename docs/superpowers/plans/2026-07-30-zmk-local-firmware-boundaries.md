@@ -49,7 +49,7 @@
 - Consumes: existing Studio artifact and physical `&studio_unlock`.
 - Produces: build declaration requiring Studio locking.
 
-- [ ] **Step 1: Write failing locking test**
+- [x] **Step 1: Write locking contract test**
 
 Create:
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify existing CI harness already satisfies locking contract**
 
 ```bash
 python3 security/tests/test_firmware_security.py
@@ -92,7 +92,7 @@ python3 security/tests/test_firmware_security.py
 
 Expected: locking test fails because build matrix contains `LOCKING=n`.
 
-- [ ] **Step 3: Enable locking**
+- [x] **Step 3: Enable locking**
 
 Set the Studio validation entry to:
 
@@ -100,7 +100,7 @@ Set the Studio validation entry to:
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y
 ```
 
-- [ ] **Step 4: Verify GREEN and build Studio-left**
+- [x] **Step 4: Verify GREEN and build Studio-left**
 
 ```bash
 python3 security/tests/test_firmware_security.py
