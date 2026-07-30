@@ -1,0 +1,34 @@
+{
+  "phase": "pre-flash",
+  "source_commit": "7297a06969009ec7824826d44dde9df4becaeb88",
+  "runs": [30561289211, 30561292657],
+  "uploaded_artifact_count": 0,
+  "artifacts": {
+    "right": {
+      "sha256": "20566c8128be9d50ca34c0e214966ba91af4d3f436245935fafad844b45e26dd",
+      "run_a_sha256": "20566c8128be9d50ca34c0e214966ba91af4d3f436245935fafad844b45e26dd",
+      "run_b_sha256": "20566c8128be9d50ca34c0e214966ba91af4d3f436245935fafad844b45e26dd"
+    },
+    "left": {
+      "sha256": "978b2659bbf443f856d96f2f6885d6fc988e8d029fe2568ed4ebc124037c2ab8",
+      "run_a_sha256": "978b2659bbf443f856d96f2f6885d6fc988e8d029fe2568ed4ebc124037c2ab8",
+      "run_b_sha256": "978b2659bbf443f856d96f2f6885d6fc988e8d029fe2568ed4ebc124037c2ab8"
+    },
+    "studio-left": {
+      "sha256": "004636e8cee9888f399fc64a1f19a722e06af21d011b737a8e54d656b9bc68de",
+      "run_a_sha256": "004636e8cee9888f399fc64a1f19a722e06af21d011b737a8e54d656b9bc68de",
+      "run_b_sha256": "004636e8cee9888f399fc64a1f19a722e06af21d011b737a8e54d656b9bc68de"
+    },
+    "settings-reset": {
+      "sha256": "157e0cd816e5876f0e659010e754cc582e23281b94888e538e21297ada2755cc",
+      "run_a_sha256": "157e0cd816e5876f0e659010e754cc582e23281b94888e538e21297ada2755cc",
+      "run_b_sha256": "157e0cd816e5876f0e659010e754cc582e23281b94888e538e21297ada2755cc"
+    }
+  },
+  "deferred_findings": {
+    "ZMK-SEC-009": "BLE Studio disabled",
+    "ZMK-SEC-021": "settings-reset undistributed"
+  },
+  "flash_approved": false,
+  "hardware_complete": false
+}

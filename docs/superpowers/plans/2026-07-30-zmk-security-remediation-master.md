@@ -32,7 +32,9 @@ Updated 2026-07-30:
 - Task 5 complete. Client lane evidence remains verified; user explicitly
   accepted ZMK-SEC-009 and ZMK-SEC-021 as `deferred-open` on 2026-07-31 with
   BLE Studio disabled and settings-reset undistributed.
-- Task 6 pending.
+- Task 6 pre-flash software gate complete for source `7297a06`; exact-source
+  CI runs 30561289211 and 30561292657 are deterministic and uploaded no
+  artifacts. Exact-hash approval and all hardware checks remain pending.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
   `python3 security/tests/test_workflow_security.py` (6 tests) because three
@@ -389,7 +391,7 @@ git commit -m "docs: complete security software gate"
 - Consumes: complete software disposition and exact release candidate source SHA.
 - Produces: reproducible UF2 hashes, explicit user approval, hardware results, final portfolio verdict.
 
-- [ ] **Step 1: Run integration child plan Task 1**
+- [x] **Step 1: Run integration child plan Task 1**
 
 Execute deterministic clean resolution, two-pass builds, artifact comparison,
 effective Kconfig/Devicetree inspection, and residual review exactly as specified

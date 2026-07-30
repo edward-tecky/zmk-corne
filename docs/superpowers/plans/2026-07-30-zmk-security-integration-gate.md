@@ -6,14 +6,16 @@
 
 **Architecture:** Re-resolve the committed frozen manifest in two clean workspaces, build right and locked USB-Studio left twice, compare artifacts/effective configuration, and map every finding to fixed/removed/open evidence. Hardware flashing occurs only after explicit user approval of exact hashes; manual results are recorded without converting failures into silent acceptance.
 
-**Tech Stack:** west 1.5.0, Zephyr SDK 0.16.3, SHA-256, Kconfig/Devicetree, GitHub CLI, physical Corne hardware
+**Tech Stack:** repository-owned GitHub Actions, SHA-256,
+Kconfig/Devicetree, GitHub CLI, physical Corne hardware
 
 ## Global Constraints
 
 - Run only after all preceding repository, local-boundary, official-baseline, and selected DYA plans complete.
 - No current artifact is implicitly approved.
 - User must approve exact SHA-256 values before first flash.
-- Build both halves twice from clean frozen inputs.
+- Build all four validation targets twice from the same exact source using
+  repository-owned CI. Upload no firmware artifacts before approval.
 - Any hash mismatch, open applicable firmware finding, build warning classified as correctness/memory safety, or failed manual test stops approval.
 - Record hardware-only behavior as manual evidence.
 - Never mark ZMK-SEC-009 closed while official BLE Studio remains disabled rather than fixed.
@@ -37,7 +39,7 @@
 - Consumes: committed frozen manifest and official baseline.
 - Produces: exact right/Studio-left hashes and machine-checked gate result.
 
-- [ ] **Step 1: Create failing release-gate test script**
+- [x] **Step 1: Create failing release-gate test script**
 
 ```python
 #!/usr/bin/env python3
@@ -89,7 +91,7 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 2: Run RED before builds**
+- [x] **Step 2: Run RED before evidence**
 
 ```bash
 python3 security/scripts/verify_release_gate.py
@@ -97,7 +99,7 @@ python3 security/scripts/verify_release_gate.py
 
 Expected: fails with `missing right build`.
 
-- [ ] **Step 3: Create two clean workspaces**
+- [x] **Step 3: Dispatch two exact-source clean CI runs**
 
 ```bash
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -116,7 +118,7 @@ done
 diff -u /tmp/zmk-release-a/frozen.yml /tmp/zmk-release-b/frozen.yml
 ```
 
-- [ ] **Step 4: Build both artifacts twice**
+- [x] **Step 4: Build four validation targets twice**
 
 ```bash
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -137,7 +139,7 @@ for root in /tmp/zmk-release-a /tmp/zmk-release-b; do
 done
 ```
 
-- [ ] **Step 5: Run GREEN and record evidence**
+- [x] **Step 5: Run GREEN and record evidence**
 
 ```bash
 python3 security/scripts/verify_release_gate.py
@@ -149,7 +151,7 @@ Write exact commands/output, manifest digest, tool versions, artifact hashes,
 effective security symbols, and warning inventory to
 `security/audit/release-candidate-evidence.md`.
 
-- [ ] **Step 6: Add finding map**
+- [x] **Step 6: Add finding map**
 
 Add one row for every ZMK-SEC-001 through ZMK-SEC-021 with status restricted to:
 
@@ -163,7 +165,7 @@ open-blocking
 Any `open-blocking` stops this plan. `open-disabled` must name the disabled feature
 and effective-build evidence.
 
-- [ ] **Step 7: Commit software gate**
+- [x] **Step 7: Commit software gate**
 
 ```bash
 git add security/scripts/verify_release_gate.py \
