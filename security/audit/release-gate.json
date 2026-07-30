@@ -1,7 +1,7 @@
 {
   "phase": "pre-flash",
-  "source_commit": "0ebe524c795dcfaeb30ed7d7c1570732dcd8abf4",
-  "runs": [30576318713, 30576779722],
+  "source_commit": "72e4df5041a6ac7380385ddcd38cb858d7f4c340",
+  "runs": [30579741764, 30580040410],
   "uploaded_artifact_count": 0,
   "artifacts": {
     "right": {
@@ -15,9 +15,9 @@
       "run_b_sha256": "fec3be7ac31a6d9230e64f72737fe06ee07cd5d93d2ec27d5a428bc0812550e4"
     },
     "studio-left": {
-      "sha256": "24618d7d2d90db6186aa353806b73b29e5a9144485a19643373b55a85e40ee08",
-      "run_a_sha256": "24618d7d2d90db6186aa353806b73b29e5a9144485a19643373b55a85e40ee08",
-      "run_b_sha256": "24618d7d2d90db6186aa353806b73b29e5a9144485a19643373b55a85e40ee08"
+      "sha256": "35f88000124255e2769071426821d464d7d3a890c45d85b0860fdb840d7e8ca3",
+      "run_a_sha256": "35f88000124255e2769071426821d464d7d3a890c45d85b0860fdb840d7e8ca3",
+      "run_b_sha256": "35f88000124255e2769071426821d464d7d3a890c45d85b0860fdb840d7e8ca3"
     },
     "settings-reset": {
       "sha256": "001a0e3a33055c2a50dc132f3e1de09c1c448071a896649221c74f182f49be16",

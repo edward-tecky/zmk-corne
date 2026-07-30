@@ -15,7 +15,11 @@
 - [ ] On the user-approved remediated locking-enabled Studio artifact only, with Studio locked, attempt USB Studio connection and mutation. Confirm rejection before physical unlock; do not use either current audit artifact for this test.
 - [ ] Trigger physical Studio unlock binding. Confirm USB Studio access opens only after action, required operations work, and automatic relock occurs after configured 600-second timeout and disconnect.
 - [ ] With USB connected, identify USB CDC ACM Studio transport and confirm no hardware UART0/UART1 path is required.
-- [ ] With USB disconnected, test encrypted BLE Studio independently: confirm same lock-before-unlock and relock behavior; record whether policy permits it for production.
+- [ ] Test encrypted BLE Studio independently and across transports: confirm the
+  same lock-before-unlock policy; unlock through USB and attempt BLE mutation
+  during the unlock window; disconnect USB then BLE and BLE then USB; record
+  whether lock state is global or per transport and verify intended relock after
+  each order.
 
 ## Input, lighting, power
 

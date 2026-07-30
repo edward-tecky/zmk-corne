@@ -179,10 +179,10 @@ git commit -m "test: verify ZMK release candidate gate"
 **Files:**
 - Modify: `security/audit/release-candidate-evidence.md`
 
-- [ ] Present right and Studio-left SHA-256 values, all open-disabled findings,
-  and absence of settings-reset artifact to user.
-- [ ] Wait for explicit approval naming both hashes. A generic “go ahead” without
-  matching hashes does not authorize flashing.
+- [ ] Present right, locked BLE+USB Studio-left, and settings-reset SHA-256
+  values plus all open-disabled findings to user.
+- [ ] Wait for explicit approval naming all three hashes. A generic “go ahead”
+  without matching hashes does not authorize flashing.
 - [ ] Record approval text/date in evidence file and commit:
 
 ```bash
@@ -196,14 +196,15 @@ git commit -m "docs: record ZMK artifact approval"
 - Modify: `security/audit/manual-hardware-tests.md`
 - Modify: `security/audit/release-candidate-evidence.md`
 
-- [ ] Flash only approved right and Studio-left hashes.
+- [ ] Flash only approved right, Studio-left, and settings-reset hashes.
 - [ ] Execute all 18 existing checklist items in order, recording date, host,
   observed result, PASS/FAIL, and recovery notes.
 - [ ] Stop immediately on failed recovery, unexpected HID, unlocked Studio access,
   missing relock, split propagation error, or sleep/wake failure.
 - [ ] Verify Studio USB is rejected while locked, accepted after physical
   `&studio_unlock`, and rejected after disconnect/600-second idle relock.
-- [ ] Confirm BLE Studio is unavailable by design.
+- [ ] Confirm encrypted BLE Studio enforces the same lock-before-unlock and
+  relock policy as USB Studio.
 - [ ] Run all keys, five-way switch, encoder directions on every layer, mouse,
   RGB/backlight, host switching, split propagation, sleep/wake, soft-off, and idle
   HID observation.

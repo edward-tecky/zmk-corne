@@ -44,6 +44,11 @@ Updated 2026-07-31:
   their remaining gates require hardware, so BLE Studio stays disabled and
   settings-reset stays undistributed.
 - No hardware artifact has been flashed.
+- User approved amending Task 6 to include a patched locked BLE+USB Studio-left
+  candidate and settings-reset recovery candidate in the exact-hash approval
+  packet. Source `72e4df5041a6ac7380385ddcd38cb858d7f4c340` passed deterministic
+  four-target boundary runs `30579741764` and `30580040410`; flash approval is
+  still not granted.
 - First-wave checkpoint used consolidated
   `python3 security/tests/test_workflow_security.py` (6 tests) because three
   originally planned per-topic scripts were replaced by this unified suite.
@@ -412,12 +417,13 @@ Provide:
 ```text
 Source commit: output of `git rev-parse HEAD`
 Right UF2 SHA-256: output of `sha256sum release/right/zmk.uf2`
-Studio-left UF2 SHA-256: output of `sha256sum release/studio-left/zmk.uf2`
+BLE+USB Studio-left UF2 SHA-256: output of `sha256sum release/studio-left/zmk.uf2`
+Settings-reset UF2 SHA-256: output of `sha256sum release/settings-reset/zmk.uf2`
 Open/deferred findings: rows selected from ledger with status `open` or `deferred-open`
 Automated gate: PASS
 ```
 
-Do not flash without user approval naming these exact hashes.
+Do not flash without user approval naming all three exact hashes.
 
 - [ ] **Step 3: Run child plan Tasks 2–3 after approval**
 
