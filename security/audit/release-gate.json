@@ -26,7 +26,7 @@
     }
   },
   "deferred_findings": {
-    "ZMK-SEC-009": "BLE Studio disabled",
+    "ZMK-SEC-009": "BLE Studio enabled only in locked undistributed hardware candidate; authorization tests pending",
     "ZMK-SEC-021": "settings-reset undistributed"
   },
   "flash_approved": false,

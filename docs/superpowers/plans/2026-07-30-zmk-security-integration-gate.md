@@ -2,9 +2,14 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Prove deterministic official-ZMK artifacts satisfy every resolved software gate, then execute the manual hardware checklist before any flash approval.
+**Goal:** Prove deterministic reviewed-ZMK artifacts satisfy every resolved software gate, then execute the manual hardware checklist after exact-hash flash approval.
 
-**Architecture:** Re-resolve the committed frozen manifest in two clean workspaces, build right and locked USB-Studio left twice, compare artifacts/effective configuration, and map every finding to fixed/removed/open evidence. Hardware flashing occurs only after explicit user approval of exact hashes; manual results are recorded without converting failures into silent acceptance.
+**Architecture:** Re-resolve the committed frozen manifest in two clean
+workspaces; build ordinary right, ordinary left, locked BLE+USB Studio-left, and
+settings-reset twice; compare artifacts/effective configuration; and map every
+finding to fixed/removed/open evidence. Hardware flashing occurs only after
+explicit user approval of all candidate hashes; manual results are recorded
+without converting failures into silent acceptance.
 
 **Tech Stack:** repository-owned GitHub Actions, SHA-256,
 Kconfig/Devicetree, GitHub CLI, physical Corne hardware
@@ -49,11 +54,13 @@ import sys
 
 
 ROOTS = (Path("/tmp/zmk-release-a"), Path("/tmp/zmk-release-b"))
-ARTIFACTS = ("right", "studio")
+ARTIFACTS = ("right", "left", "studio-left", "settings-reset")
 REQUIRED_STUDIO = {
     "CONFIG_ZMK_STUDIO=y",
     "CONFIG_ZMK_STUDIO_LOCKING=y",
-    "CONFIG_ZMK_STUDIO_TRANSPORT_BLE=n",
+    "CONFIG_ZMK_STUDIO_TRANSPORT_BLE=y",
+    "CONFIG_ZMK_STUDIO_TRANSPORT_UART=y",
+    "CONFIG_ZMK_STUDIO_LOCK_ON_DISCONNECT=y",
 }
 FORBIDDEN_RIGHT_PREFIXES = (
     "CONFIG_ZMK_STUDIO=y",
@@ -76,7 +83,9 @@ def main() -> int:
             raise SystemExit(f"nondeterministic {artifact}")
 
     right = (ROOTS[0] / "build/right/zephyr/.config").read_text().splitlines()
-    studio = (ROOTS[0] / "build/studio/zephyr/.config").read_text().splitlines()
+    studio = (
+        ROOTS[0] / "build/studio-left/zephyr/.config"
+    ).read_text().splitlines()
     for symbol in FORBIDDEN_RIGHT_PREFIXES:
         if symbol in right:
             raise SystemExit(f"right exposes {symbol}")
@@ -126,15 +135,22 @@ for root in /tmp/zmk-release-a /tmp/zmk-release-b; do
   (
     cd "$root"
     west build -p always -s zmk/app -d build/right \
-      -b nice_nano_v2 -- -DZMK_CONFIG="$REPO_ROOT/config" \
+      -b nice_nano//zmk -- -DZMK_CONFIG="$REPO_ROOT/config" \
       -DZMK_EXTRA_MODULES="$REPO_ROOT" \
       '-DSHIELD=eyelash_corne_right nice_view'
-    west build -p always -s zmk/app -d build/studio \
-      -b nice_nano_v2 -S studio-rpc-usb-uart -- \
+    west build -p always -s zmk/app -d build/left \
+      -b nice_nano//zmk -- -DZMK_CONFIG="$REPO_ROOT/config" \
+      -DZMK_EXTRA_MODULES="$REPO_ROOT" \
+      '-DSHIELD=eyelash_corne_left nice_view'
+    west build -p always -s zmk/app -d build/studio-left \
+      -b nice_nano//zmk -S studio-rpc-usb-uart -- \
       -DZMK_CONFIG="$REPO_ROOT/config" -DZMK_EXTRA_MODULES="$REPO_ROOT" \
       '-DSHIELD=eyelash_corne_left eyelash_corne_studio nice_view' \
       -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y \
-      -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
+      -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
+    west build -p always -s zmk/app -d build/settings-reset \
+      -b nice_nano//zmk -- -DZMK_CONFIG="$REPO_ROOT/config" \
+      -DZMK_EXTRA_MODULES="$REPO_ROOT" '-DSHIELD=settings_reset'
   )
 done
 ```
@@ -143,7 +159,7 @@ done
 
 ```bash
 python3 security/scripts/verify_release_gate.py
-sha256sum /tmp/zmk-release-{a,b}/build/{right,studio}/zephyr/zmk.uf2
+sha256sum /tmp/zmk-release-{a,b}/build/{right,left,studio-left,settings-reset}/zephyr/zmk.uf2
 git diff --check
 ```
 
