@@ -4,7 +4,7 @@ manifest:
   projects:
   - name: zmk
     url: https://github.com/edward-tecky/zmk
-    revision: 7c61a5496910a48d2db2d6abdb249950b791ca9a
+    revision: df896a2f4ffafa145bbae043debe523561b28493
     west-commands: scripts/west-commands.yml
   - name: zephyr
     url: https://github.com/zmkfirmware/zephyr

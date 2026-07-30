@@ -86,7 +86,8 @@ jobs:
           echo "extra_west_args=${extra_west_args}" >> $GITHUB_ENV
           echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg}" >> $GITHUB_ENV
           echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
-          echo "artifact_name=${artifact_name:-${shield:+$shield-}${board}-zmk}" >> $GITHUB_ENV
+          safe_artifact_name=$(printf '%s' "${artifact_name:-${shield:+$shield-}${board}-zmk}" | tr '/' '-')
+          echo "artifact_name=${safe_artifact_name}" >> $GITHUB_ENV
 
       - name: Copy config files to isolated temporary directory
         run: |

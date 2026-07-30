@@ -109,6 +109,11 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertRegex(caller, re.compile(r"(?m)^\s+contents:\s+read\s*$"))
         self.assertNotIn("zmkfirmware/zmk/.github/workflows/", caller)
 
+    def test_reusable_build_sanitizes_artifact_path_components(self) -> None:
+        workflow = PINNED_BUILD_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("tr '/' '-'", workflow)
+        self.assertIn("artifact_name=${safe_artifact_name}", workflow)
+
     def test_vendored_build_actions_are_pinned(self) -> None:
         workflow = PINNED_BUILD_WORKFLOW.read_text(encoding="utf-8")
         for source, sha in AUDITED_ACTION_USES.items():

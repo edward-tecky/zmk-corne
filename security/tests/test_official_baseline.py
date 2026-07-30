@@ -9,7 +9,7 @@ KEYMAP = ROOT / "config" / "eyelash_corne.keymap"
 BUILD = ROOT / "build.yaml"
 SECURITY_BUILD = ROOT / "security" / "build-firmware-boundaries.yaml"
 SHIELD_ROOT = ROOT / "boards" / "shields" / "eyelash_corne"
-REVIEWED_ZMK_SHA = "7c61a5496910a48d2db2d6abdb249950b791ca9a"
+REVIEWED_ZMK_SHA = "df896a2f4ffafa145bbae043debe523561b28493"
 
 
 class OfficialBaselineTests(unittest.TestCase):
