@@ -23,6 +23,11 @@ class FirmwareSecurityTests(unittest.TestCase):
         self.assertNotIn("-DCONFIG_ZMK_STUDIO_LOCKING=n", matrix)
         self.assertIn("&studio_unlock", KEYMAP.read_text(encoding="utf-8"))
 
+    def test_hardware_gate_studio_artifact_enables_patched_ble_transport(self) -> None:
+        matrix = BUILD_MATRIX.read_text(encoding="utf-8")
+        self.assertIn("-DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y", matrix)
+        self.assertNotIn("-DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n", matrix)
+
     def test_generic_left_excludes_management_interfaces(self) -> None:
         left = LEFT_CONF.read_text(encoding="utf-8")
         forbidden = (
