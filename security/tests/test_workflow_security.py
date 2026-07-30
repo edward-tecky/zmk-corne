@@ -66,6 +66,8 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertNotRegex(workflow, re.compile(r"(?m)^\s+contents:\s+write\s*$"))
         self.assertIn("upload_artifacts:", reusable)
         self.assertIn("if: inputs.upload_artifacts", reusable)
+        self.assertIn("Firmware SHA-256", reusable)
+        self.assertIn("sha256sum", reusable)
 
     def test_firmware_validation_matrix_has_all_required_boundaries(self) -> None:
         matrix = FIRMWARE_SECURITY_MATRIX.read_text(encoding="utf-8")

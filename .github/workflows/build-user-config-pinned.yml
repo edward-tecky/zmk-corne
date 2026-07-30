@@ -130,6 +130,19 @@ jobs:
         shell: sh -x {0}
         run: west build -s zmk/app -d "${{ env.build_dir }}" -b "${{ matrix.board }}" ${{ env.extra_west_args }} -- -DZMK_CONFIG=${{ env.base_dir }}/${{ inputs.config_path }} ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
 
+      - name: Firmware SHA-256
+        run: |
+          if [ -f "${{ env.build_dir }}/zephyr/zmk.uf2" ]
+          then
+            sha256sum "${{ env.build_dir }}/zephyr/zmk.uf2"
+          elif [ -f "${{ env.build_dir }}/zephyr/zmk.${{ inputs.fallback_binary }}" ]
+          then
+            sha256sum "${{ env.build_dir }}/zephyr/zmk.${{ inputs.fallback_binary }}"
+          else
+            echo "No firmware output"
+            exit 1
+          fi
+
       - name: ${{ env.display_name }} Kconfig file
         run: |
           if [ -f "${{ env.build_dir }}/zephyr/.config" ]
