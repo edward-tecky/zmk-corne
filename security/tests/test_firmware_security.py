@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import unittest
 
 
@@ -57,6 +58,13 @@ class FirmwareSecurityTests(unittest.TestCase):
             "shield: eyelash_corne_left eyelash_corne_studio nice_view",
             matrix,
         )
+
+    def test_each_layer_has_one_physical_encoder_binding(self) -> None:
+        keymap = KEYMAP.read_text(encoding="utf-8")
+        bindings = re.findall(r"sensor-bindings\s*=\s*<([^>]+)>;", keymap)
+        self.assertEqual(4, len(bindings))
+        self.assertEqual(["&rsr_vol"] * 4, [" ".join(x.split()) for x in bindings])
+        self.assertNotIn("rsr_trans:", keymap)
 
 
 if __name__ == "__main__":

@@ -241,7 +241,7 @@ Change Studio entry:
     artifact-name: eyelash_corne_studio_left
 ```
 
-- [ ] **Step 6: Verify tests and all effective artifacts**
+- [x] **Step 6: Verify tests and all effective artifacts**
 
 ```bash
 python3 security/tests/test_firmware_security.py
@@ -257,7 +257,7 @@ gh run view "$(gh run list --workflow security-firmware-boundaries.yml \
 
 Expected: ordinary left has no management symbols; Studio artifact has Studio and locking.
 
-- [ ] **Step 7: Commit ZMK-SEC-007**
+- [x] **Step 7: Commit ZMK-SEC-007**
 
 ```bash
 git add build.yaml boards/shields/eyelash_corne \
@@ -276,7 +276,7 @@ git commit -m "build: isolate Studio management artifact"
 - Consumes: one physical `left_encoder`.
 - Produces: one `&rsr_vol` sensor binding per layer; removes unused `rsr_trans`.
 
-- [ ] **Step 1: Add failing sensor-capacity test**
+- [x] **Step 1: Add failing sensor-capacity test**
 
 ```python
     def test_each_layer_has_one_physical_encoder_binding(self) -> None:
@@ -287,7 +287,7 @@ git commit -m "build: isolate Studio management artifact"
         self.assertNotIn("rsr_trans:", keymap)
 ```
 
-- [ ] **Step 2: Verify RED**
+- [x] **Step 2: Verify RED**
 
 ```bash
 python3 security/tests/test_firmware_security.py
@@ -295,7 +295,7 @@ python3 security/tests/test_firmware_security.py
 
 Expected: four layers contain two bindings and `rsr_trans` exists.
 
-- [ ] **Step 3: Keep one volume binding per layer**
+- [x] **Step 3: Keep one volume binding per layer**
 
 Delete the entire `rsr_trans` behavior node at lines 33-37. Replace each:
 
