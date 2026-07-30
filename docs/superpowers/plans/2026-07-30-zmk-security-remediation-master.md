@@ -20,9 +20,10 @@ Updated 2026-07-30:
     disabled pending official-baseline gates.
   - DYA client Tasks 1–8 complete through ZMK-SEC-019 (`314bab6`); dependency
     pins and cross-repository integration fixtures verified.
-- Task 3 in progress. Required four-artifact gates run in repository-owned
-  GitHub Actions, matching ZMK's documented user-config build path. Validation
-  builds publish no firmware artifacts; local `west` is not required.
+- Task 3 complete (`4af6ad7`, `18a0aa7`, `7713bc9`, `28cab0c`).
+  Repository-owned GitHub Actions runs 30534460476, 30534737625, and
+  30534942755 passed required four-target gates and uploaded no firmware
+  artifacts.
 - Tasks 4–6 pending.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
@@ -242,7 +243,7 @@ git commit -m "docs: record first security remediation wave"
 - Consumes: frozen supply chain from Task 2.
 - Produces: reviewed product commits for ZMK-SEC-003, ZMK-SEC-007, and ZMK-SEC-020 plus both-half build evidence.
 
-- [ ] **Step 1: Run child plan in declared order**
+- [x] **Step 1: Run child plan in declared order**
 
 Execute Tasks 1–3 from
 `docs/superpowers/plans/2026-07-30-zmk-local-firmware-boundaries.md`.
@@ -254,7 +255,7 @@ ordinary right, ordinary left, locked Studio-left, and settings-reset without
 uploading firmware artifacts. Push only to `edward-tecky/zmk-corne`; do not open
 pull requests or write to upstream repositories.
 
-- [ ] **Step 2: Confirm artifact separation**
+- [x] **Step 2: Confirm artifact separation**
 
 ```bash
 python3 security/tests/test_firmware_security.py
@@ -265,7 +266,7 @@ git diff --check
 Expected: normal halves exclude Studio/custom management configuration; dedicated
 central artifact is locked; encoder declarations match generated capacity.
 
-- [ ] **Step 3: Update and commit ledger**
+- [x] **Step 3: Update and commit ledger**
 
 Record commit SHA and build evidence separately for ZMK-SEC-003, ZMK-SEC-007,
 and ZMK-SEC-020.

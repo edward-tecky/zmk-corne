@@ -309,7 +309,7 @@ with:
 sensor-bindings = <&rsr_vol>;
 ```
 
-- [ ] **Step 4: Verify GREEN and warning-free builds**
+- [x] **Step 4: Verify GREEN and warning-free builds**
 
 ```bash
 python3 security/tests/test_firmware_security.py
@@ -325,7 +325,7 @@ gh run watch "$(gh run list --workflow security-firmware-boundaries.yml \
 
 Expected: tests/builds pass; excess-initializer warning absent. Hardware encoder behavior remains a later manual gate.
 
-- [ ] **Step 5: Commit ZMK-SEC-020**
+- [x] **Step 5: Commit ZMK-SEC-020**
 
 ```bash
 git add config/eyelash_corne.keymap \
