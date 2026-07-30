@@ -20,7 +20,10 @@ Updated 2026-07-30:
     disabled pending official-baseline gates.
   - DYA client Tasks 1–8 complete through ZMK-SEC-019 (`314bab6`); dependency
     pins and cross-repository integration fixtures verified.
-- Tasks 3–6 pending.
+- Task 3 blocked before edits: `west` is not installed/on `PATH`, and no
+  initialized local ZMK workspace is available for required four-artifact
+  builds.
+- Tasks 4–6 pending.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
   `python3 security/tests/test_workflow_security.py` (6 tests) because three
