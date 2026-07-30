@@ -9,16 +9,16 @@ KEYMAP = ROOT / "config" / "eyelash_corne.keymap"
 BUILD = ROOT / "build.yaml"
 SECURITY_BUILD = ROOT / "security" / "build-firmware-boundaries.yaml"
 SHIELD_ROOT = ROOT / "boards" / "shields" / "eyelash_corne"
-OFFICIAL_ZMK_SHA = "faaf39d9f59cd2a27eca3739cdd9eb197654299b"
+REVIEWED_ZMK_SHA = "7c61a5496910a48d2db2d6abdb249950b791ca9a"
 
 
 class OfficialBaselineTests(unittest.TestCase):
-    def test_manifest_uses_only_full_sha_revisions_and_official_zmk(self) -> None:
+    def test_manifest_uses_only_full_sha_revisions_and_reviewed_zmk(self) -> None:
         manifest = WEST.read_text(encoding="utf-8")
-        self.assertIn("url: https://github.com/zmkfirmware/zmk", manifest)
+        self.assertIn("url: https://github.com/edward-tecky/zmk", manifest)
         self.assertRegex(
             manifest,
-            rf"(?ms)- name: zmk\b.*?revision: {OFFICIAL_ZMK_SHA}\b",
+            rf"(?ms)- name: zmk\b.*?revision: {REVIEWED_ZMK_SHA}\b",
         )
         self.assertNotIn("cormoran", manifest.lower())
         revisions = re.findall(r"(?m)^\s+revision:\s+(\S+)", manifest)

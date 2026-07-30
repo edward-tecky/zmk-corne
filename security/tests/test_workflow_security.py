@@ -118,11 +118,11 @@ class WorkflowSecurityTests(unittest.TestCase):
             re.compile(r"(?m)^\s*uses:\s+[^./][^@\s]*@(main|master|v\d+)"),
         )
 
-    def test_west_manifest_is_frozen_official_graph(self) -> None:
+    def test_west_manifest_is_frozen_reviewed_graph(self) -> None:
         manifest = WEST_MANIFEST.read_text(encoding="utf-8")
         revisions = re.findall(r"(?m)^\s+revision:\s+(\S+)", manifest)
 
-        self.assertIn("url: https://github.com/zmkfirmware/zmk", manifest)
+        self.assertIn("url: https://github.com/edward-tecky/zmk", manifest)
         self.assertNotIn("cormoran", manifest.lower())
         self.assertGreater(len(revisions), 10)
         self.assertTrue(
