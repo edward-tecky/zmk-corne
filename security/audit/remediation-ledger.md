@@ -2,24 +2,24 @@
 
 | Finding | Status | Owner | Plan | Commit | Evidence | Reviewer | Residual gate |
 |---|---|---|---|---|---|---|---|
-| ZMK-SEC-001 | open | product | `docs/superpowers/plans/2026-07-30-zmk-sec-001-pin-keymap-drawer.md` | — | — | — | drawer workflow immutable |
-| ZMK-SEC-002 | open | product | `docs/superpowers/plans/2026-07-30-zmk-supply-chain-remediation.md` | — | — | — | complete west graph immutable |
+| ZMK-SEC-001 | fixed | product | `docs/superpowers/plans/2026-07-30-zmk-sec-001-pin-keymap-drawer.md` | `d825e4d6869bc75d2f0be4618451f965fb95a954` | pin contract test; live workflow run 30490325000 passed | focused review approved | none |
+| ZMK-SEC-002 | fixed | product | `docs/superpowers/plans/2026-07-30-zmk-supply-chain-remediation.md` | `0a6143ef8af7b7f5125601061b47876d34ac4f2d` | west manifest lock test passed; graph immutable | focused review approved | none |
 | ZMK-SEC-003 | open | product | `docs/superpowers/plans/2026-07-30-zmk-local-firmware-boundaries.md` | — | — | — | physical unlock and relock pass |
 | ZMK-SEC-004 | open | firmware baseline | `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md` | — | — | — | DYA mutation RPCs absent |
-| ZMK-SEC-005 | open | dya-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | — | — | — | navigation accepts HTTPS only |
-| ZMK-SEC-006 | open | product | `docs/superpowers/plans/2026-07-30-zmk-supply-chain-remediation.md` | — | — | — | workflow and actions immutable |
+| ZMK-SEC-005 | fixed | dya-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | `61f3b98f25bb79b9da0a5cb71e5c6a345ed15e7c` | malicious-URL fixture passed | focused review approved | none |
+| ZMK-SEC-006 | fixed | product | `docs/superpowers/plans/2026-07-30-zmk-supply-chain-remediation.md` | `7c78ffd0c09f611839d65a50f12e82286a0bdb84`, `c2a3f51b434824ca82139590208e0c5d11e7ced8` | action pins passed; run 30498045803 distributed safe right-half only | Beauvoir approved | none |
 | ZMK-SEC-007 | open | product | `docs/superpowers/plans/2026-07-30-zmk-local-firmware-boundaries.md` | — | — | — | normal artifact excludes management |
 | ZMK-SEC-008 | open | firmware baseline | `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md` | — | — | — | vulnerable relay absent |
-| ZMK-SEC-009 | open | upstream ZMK | `docs/superpowers/plans/2026-07-30-upstream-zmk-security-fixes.md` | — | — | — | BLE Studio disabled until fixed |
-| ZMK-SEC-010 | open | zmk-studio-ts-client | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | — | — | — | frame size bounded |
-| ZMK-SEC-011 | open | zmk-studio-ts-client | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | — | — | — | timeout releases mutex |
-| ZMK-SEC-012 | open | dya-studio deployment | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | — | — | — | isolated origin headers pass |
-| ZMK-SEC-013 | open | react-zmk-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | — | — | — | ambiguous reconnect prompts |
+| ZMK-SEC-009 | in-review | upstream ZMK | `docs/superpowers/plans/2026-07-30-upstream-zmk-security-fixes.md` | `bd76313b7858addc481959397a1daf69a4c839fa` | fix retained in `edward-tecky/zmk`; upstream PR closed | focused review approved | BLE Studio disabled until product pin and gate |
+| ZMK-SEC-010 | fixed | zmk-studio-ts-client | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | `65e6f61aea07058a1d08843b679482bb661d8704` | oversized-frame fixture 15-test TS security suite passed | focused review approved | none |
+| ZMK-SEC-011 | fixed | zmk-studio-ts-client | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | `d22118556ef87deb80e8898aabe50495d6d6bd25`, `9042e054c1a63eb81b16a2bfbc980d8fe17319b8` | timeout/mutex fixtures passed; immutable packages verified | Hooke approved packaging | none |
+| ZMK-SEC-012 | fixed | dya-studio deployment | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | `e18009a3a605598ed17d5a9ef9141edaf1048bda` | header, SPA, static, and error route fixtures passed | focused review approved | none |
+| ZMK-SEC-013 | fixed | react-zmk-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | `68abc100d0bf152eba3553a240a03039cb779e36`, `a8a74ce62b1623bf1abd72ef78a89213479d753f` | reconnect fixtures 34/34; DYA device-picker fixtures passed | focused review approved | none |
 | ZMK-SEC-014 | open | firmware baseline | `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md` | — | — | — | vulnerable wired callback absent |
 | ZMK-SEC-015 | open | firmware baseline | `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md` | — | — | — | ignored positions cannot emit HID |
 | ZMK-SEC-016 | open | firmware baseline | `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md` | — | — | — | write-amplifying RPCs absent |
 | ZMK-SEC-017 | open | firmware baseline | `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md` | — | — | — | faulty runtime-input RPCs absent |
-| ZMK-SEC-018 | open | dya-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | — | — | — | support export sanitized |
-| ZMK-SEC-019 | open | dya-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | — | — | — | disruptive actions confirmed |
+| ZMK-SEC-018 | fixed | dya-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | `da7ae07123c5760c3ac07787232b9b5108c1be4b` | support-export fixture passed; full suite passed | main-thread focused review | none |
+| ZMK-SEC-019 | fixed | dya-studio | `docs/superpowers/plans/2026-07-30-dya-client-security-remediation.md` | `314bab6f467130a6ff2ee1af47f28464c03bb1d7` | 32 confirmation contracts; 548 pass, 1 skip; lint/build passed | main-thread focused review | none |
 | ZMK-SEC-020 | open | product | `docs/superpowers/plans/2026-07-30-zmk-local-firmware-boundaries.md` | — | — | — | sensor binding capacity exact |
-| ZMK-SEC-021 | open | upstream ZMK | `docs/superpowers/plans/2026-07-30-upstream-zmk-security-fixes.md` | — | — | — | settings-reset absent until fixed |
+| ZMK-SEC-021 | in-review | upstream ZMK | `docs/superpowers/plans/2026-07-30-upstream-zmk-security-fixes.md` | `53ee206489a340b9df5ebde7d56d3a9ecce9f6f8` | fix retained in `edward-tecky/zmk`; upstream PR closed | focused review approved | settings-reset absent until product pin and gate |

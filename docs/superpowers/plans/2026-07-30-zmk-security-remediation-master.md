@@ -8,6 +8,24 @@
 
 **Tech Stack:** Git, GitHub Actions, west, ZMK/Zephyr, Python contract tests, Vitest, Cloudflare Workers, subagent-driven-development
 
+## Execution Status
+
+Updated 2026-07-30:
+
+- Task 1 complete (`c4c4cb4`).
+- Task 2 complete.
+  - Product supply-chain work complete through ZMK-SEC-006 containment
+    (`d825e4d`, `0a6143e`, `7c78ffd`, `c2a3f51`).
+  - Upstream fixes retained only in `edward-tecky/zmk`; product features remain
+    disabled pending official-baseline gates.
+  - DYA client Tasks 1–8 complete through ZMK-SEC-019 (`314bab6`); dependency
+    pins and cross-repository integration fixtures verified.
+- Tasks 3–6 pending.
+- No hardware artifact has been flashed.
+- First-wave checkpoint used consolidated
+  `python3 security/tests/test_workflow_security.py` (6 tests) because three
+  originally planned per-topic scripts were replaced by this unified suite.
+
 ## Global Constraints
 
 - Execute product work on `main` in `/home/ed/Coding/zmk-corne`; do not create a product worktree.
@@ -62,7 +80,7 @@ Hard dependencies:
 **Interfaces:**
 - Produces: one row per `ZMK-SEC-001` through `ZMK-SEC-021` with fields `Status`, `Owner`, `Plan`, `Commit`, `Evidence`, `Reviewer`, and `Residual gate`.
 
-- [ ] **Step 1: Verify starting repository**
+- [x] **Step 1: Verify starting repository**
 
 ```bash
 cd /home/ed/Coding/zmk-corne
@@ -74,7 +92,7 @@ git log -1 --oneline
 
 Expected: `main`, clean worktree, exact starting SHA recorded in execution log.
 
-- [ ] **Step 2: Create complete ledger**
+- [x] **Step 2: Create complete ledger**
 
 ```markdown
 # Security Remediation Ledger
@@ -107,7 +125,7 @@ Expected: `main`, clean worktree, exact starting SHA recorded in execution log.
 Allowed statuses are `open`, `in-review`, `fixed`, `removed`, and
 `deferred-open`; only `fixed` and `removed` count as closed.
 
-- [ ] **Step 3: Validate ledger inventory**
+- [x] **Step 3: Validate ledger inventory**
 
 ```bash
 python3 - <<'PY'
@@ -123,7 +141,7 @@ PY
 git diff --check
 ```
 
-- [ ] **Step 4: Commit ledger**
+- [x] **Step 4: Commit ledger**
 
 ```bash
 git add security/audit/remediation-ledger.md
@@ -143,7 +161,7 @@ git commit -m "docs: add security remediation ledger"
 - Consumes: clean baseline and complete ledger from Task 1.
 - Produces: reviewed commits/evidence for ZMK-SEC-001/002/005/006/009/010/011/012/013/018/019/021, with product features for 009 and 021 still disabled.
 
-- [ ] **Step 1: Dispatch three non-overlapping lanes**
+- [x] **Step 1: Dispatch three non-overlapping lanes**
 
 Use one worker per lane:
 
@@ -167,7 +185,7 @@ Do not let two workers edit `/home/ed/Coding/zmk-corne` simultaneously.
 If a child-plan commit already exists on `main`, verify its exact diff and test
 evidence, update ledger, and skip reapplying that change.
 
-- [ ] **Step 2: Gate every child task**
+- [x] **Step 2: Gate every child task**
 
 For each child task:
 
@@ -180,14 +198,14 @@ git log -1 --format='%H %s'
 Require test output named by the child plan, a focused diff review, and exact
 commit SHA before marking its ledger row `fixed`, `removed`, or `in-review`.
 
-- [ ] **Step 3: Record upstream boundary**
+- [x] **Step 3: Record upstream boundary**
 
 For ZMK-SEC-009 and ZMK-SEC-021, record upstream PR URL and reviewed commit SHA.
 Keep status `in-review` until the product manifest pins reviewed code and the
 affected product verification passes. Keep BLE Studio and settings-reset
 disabled.
 
-- [ ] **Step 4: Review first-wave checkpoint**
+- [x] **Step 4: Review first-wave checkpoint**
 
 ```bash
 cd /home/ed/Coding/zmk-corne
@@ -202,7 +220,7 @@ git diff --check
 Expected: clean product tree; supply-chain tests pass; external-lane evidence is
 linked from ledger.
 
-- [ ] **Step 5: Commit ledger checkpoint**
+- [x] **Step 5: Commit ledger checkpoint**
 
 ```bash
 git add security/audit/remediation-ledger.md

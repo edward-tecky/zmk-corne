@@ -58,7 +58,7 @@ verify remote, HEAD, branch, and clean status instead of cloning over it.
 **Interfaces:**
 - Produces: `parseExternalUiUrl(raw: string): URL | null`; `navigateTo` accepts only validated HTTPS URLs.
 
-- [ ] Write failing tests:
+- [x] Write failing tests:
 
 ```ts
 import { parseExternalUiUrl } from "../navigate";
@@ -75,7 +75,7 @@ test("accepts ordinary HTTPS URL", () => {
 });
 ```
 
-- [ ] Run RED:
+- [x] Run RED:
 
 ```bash
 npm test -- --runInBand src/lib/__tests__/navigate.test.ts
@@ -83,7 +83,7 @@ npm test -- --runInBand src/lib/__tests__/navigate.test.ts
 
 Expected: `parseExternalUiUrl` is missing.
 
-- [ ] Implement:
+- [x] Implement:
 
 ```ts
 export function parseExternalUiUrl(raw: string): URL | null {
@@ -108,7 +108,7 @@ export function navigateTo(raw: string): boolean {
 
 Validate fresh device URLs before warning/storage; render an error instead of Open when invalid.
 
-- [ ] Run GREEN/full gates and commit:
+- [x] Run GREEN/full gates and commit:
 
 ```bash
 npm test -- --runInBand src/lib/__tests__/navigate.test.ts \
@@ -131,7 +131,7 @@ git commit -m "fix: reject unsafe subsystem URLs"
 **Interfaces:**
 - Produces: `MAX_FRAME_BYTES = 65536`; decoder resets and throws `FrameTooLargeError` before array growth exceeds limit.
 
-- [ ] Add failing tests using existing stream API:
+- [x] Add failing tests using existing stream API:
 
 ```ts
 import {
@@ -169,13 +169,13 @@ it("accepts a frame exactly at MAX_FRAME_BYTES", async () => {
 
 Also test excessive escapes, repeated SOF, exactly `MAX_FRAME_BYTES`, and no EOF stream chunks.
 
-- [ ] Run RED:
+- [x] Run RED:
 
 ```bash
 npm test -- --runInBand test/framing.spec.ts
 ```
 
-- [ ] Implement bounded decoder:
+- [x] Implement bounded decoder:
 
 ```ts
 export const MAX_FRAME_BYTES = 1024 * 1024;
@@ -194,7 +194,7 @@ Route every in-frame append through `appendFrameByte`; repeated SOF resets frame
 Use existing largest keymap/diagnostic fixtures to assert their encoded sizes are
 below half the 1 MiB protocol ceiling before accepting this value.
 
-- [ ] Run gates and commit:
+- [x] Run gates and commit:
 
 ```bash
 npm test -- --runInBand test/framing.spec.ts
@@ -218,7 +218,7 @@ git commit -m "fix: bound Studio response frames"
 - `call_rpc(request, options?: { signal?: AbortSignal }): Promise<Response>`
 - Timeout aborts connection-scoped pending read; late response cannot satisfy later request.
 
-- [ ] Write failing fake-transport tests:
+- [x] Write failing fake-transport tests:
 
 ```ts
 it("releases serialization after abort and rejects a late response", async () => {
@@ -234,11 +234,11 @@ it("releases serialization after abort and rejects a late response", async () =>
 
 Add two-client test proving one aborted connection does not block another.
 
-- [ ] Run RED in ts-client.
+- [x] Run RED in ts-client.
 
-- [ ] Implement per-connection mutex and abortable reader; on abort, cancel reader and require reconnect when stream correlation cannot be preserved.
+- [x] Implement per-connection mutex and abortable reader; on abort, cancel reader and require reconnect when stream correlation cannot be preserved.
 
-- [ ] Replace React `Promise.race` timeout with:
+- [x] Replace React `Promise.race` timeout with:
 
 ```ts
 const controller = new AbortController();
@@ -250,7 +250,7 @@ try {
 }
 ```
 
-- [ ] Run both repository gates and commit separately:
+- [x] Run both repository gates and commit separately:
 
 ```bash
 # zmk-studio-ts-client
@@ -276,7 +276,7 @@ git commit -am "fix: propagate Studio RPC cancellation"
 **Interfaces:**
 - Worker wraps every asset response with one immutable security-header map.
 
-- [ ] Write failing header test for:
+- [x] Write failing header test for:
 
 ```ts
 expect(headers.get("Content-Security-Policy")).toContain("default-src 'self'");
@@ -286,7 +286,7 @@ expect(headers.get("Referrer-Policy")).toBe("no-referrer");
 expect(headers.get("Permissions-Policy")).toContain("serial=(self)");
 ```
 
-- [ ] Remove Google Tag Manager bootstrap and Google Fonts import. Replace custom
+- [x] Remove Google Tag Manager bootstrap and Google Fonts import. Replace custom
   font declarations with system stacks:
 
 ```css
@@ -296,7 +296,7 @@ expect(headers.get("Permissions-Policy")).toContain("serial=(self)");
 
 Do not add another remote font/script origin.
 
-- [ ] Implement `src/worker.ts`:
+- [x] Implement `src/worker.ts`:
 
 ```ts
 interface Env { ASSETS: Fetcher }
@@ -321,9 +321,9 @@ export default {
 } satisfies ExportedHandler<Env>;
 ```
 
-- [ ] Configure `wrangler.toml` with `main = "src/worker.ts"`, assets binding `ASSETS`, SPA fallback, and `run_worker_first = ["/*"]`.
+- [x] Configure `wrangler.toml` with `main = "src/worker.ts"`, assets binding `ASSETS`, SPA fallback, and `run_worker_first = ["/*"]`.
 
-- [ ] Run Jest/build, `wrangler dev`, and curl every representative SPA/static/error route; commit as `fix: isolate Studio production origin`.
+- [x] Run Jest/build, `wrangler dev`, and curl every representative SPA/static/error route; commit as `fix: isolate Studio production origin`.
 
 ### Task 5: ZMK-SEC-013 — Prevent Ambiguous Silent Reconnect
 
@@ -336,7 +336,7 @@ export default {
 **Interfaces:**
 - Reconnect returns `{ status: "connected", port } | { status: "ambiguous", candidates } | { status: "none" }`; never falls back to candidate zero.
 
-- [ ] Add failing React tests:
+- [x] Add failing React tests:
 
 ```ts
 it("does not auto-select among two same-model ports", () => {
@@ -350,7 +350,7 @@ it("returns the only matching same-model port", () => {
 });
 ```
 
-- [ ] Run:
+- [x] Run:
 
 ```bash
 npm test -- --runInBand test/serialReconnect.spec.ts
@@ -358,11 +358,11 @@ npm test -- --runInBand test/serialReconnect.spec.ts
 
 Expected: reordered two-port case returns a port instead of `null`.
 
-- [ ] Change `findRememberedSerialPort`: return the candidate only when exactly
+- [x] Change `findRememberedSerialPort`: return the candidate only when exactly
   one same-VID/PID port exists; otherwise return `null`. Remove
   `candidates[remembered.matchIndex] ?? candidates[0]`.
 
-- [ ] Add failing DYA UI test:
+- [x] Add failing DYA UI test:
 
 ```tsx
 it("requires selection when multiple paired serial devices exist", async () => {
@@ -374,11 +374,11 @@ it("requires selection when multiple paired serial devices exist", async () => {
 });
 ```
 
-- [ ] Render explicit device picker when paired-port count exceeds one. Connect
+- [x] Render explicit device picker when paired-port count exceeds one. Connect
   only after user selection; show `VID:PID` and post-handshake firmware name
   before enabling mutation controls.
 
-- [ ] Run both full suites/builds; commit owner changes separately:
+- [x] Run both full suites/builds; commit owner changes separately:
 
 ```bash
 # react-zmk-studio
@@ -403,7 +403,7 @@ git commit -am "fix: require explicit serial device choice"
 **Interfaces:**
 - Default export omits `hardware.deviceId`, URL query/fragment, and full UA; explicit checkbox may include device ID.
 
-- [ ] Add fixture assertions:
+- [x] Add fixture assertions:
 
 ```ts
 expect(report).not.toContain("stable-device-id");
@@ -412,7 +412,7 @@ expect(report).not.toContain("#private");
 expect(report).toContain("https://studio.example/troubleshooting");
 ```
 
-- [ ] Implement:
+- [x] Implement:
 
 ```ts
 export function sanitizeSupportContext(
@@ -435,7 +435,7 @@ export function sanitizeSupportContext(
 
 Use returned object for report serialization. Show serialized preview before
 clipboard copy.
-- [ ] Run focused/full Jest, lint/build; commit `fix: minimize support report data`.
+- [x] Run focused/full Jest, lint/build; commit `fix: minimize support report data`.
 
 ### Task 7: ZMK-SEC-019 — Confirm Disruptive Actions
 
@@ -447,7 +447,7 @@ clipboard copy.
 **Interfaces:**
 - `ConfirmMutationDialog` requires target, consequence, Cancel, Confirm; mutation callback runs once only after Confirm.
 
-- [ ] Write dialog test:
+- [x] Write dialog test:
 
 ```tsx
 it("runs mutation once only after confirmation", async () => {
@@ -471,7 +471,7 @@ it("runs mutation once only after confirmation", async () => {
 });
 ```
 
-- [ ] Implement component with props:
+- [x] Implement component with props:
 
 ```ts
 interface ConfirmMutationDialogProps {
@@ -486,7 +486,7 @@ interface ConfirmMutationDialogProps {
 
 Disable Confirm while promise is pending; restore focus to trigger on close.
 
-- [ ] Wrap this exact action table:
+- [x] Wrap this exact action table:
 
 ```text
 DevtoolWindow: reboot, enterBootloader, clear logs
@@ -495,10 +495,10 @@ AdvancedSettingsSection: discard section changes
 MacroComboPage/useMacroEditor/useComboEditor: discard, delete, reset
 ```
 
-- [ ] Add one parameterized call-site test per table row: Cancel produces zero
+- [x] Add one parameterized call-site test per table row: Cancel produces zero
   RPC/local mutation; Confirm produces exactly one; locked mutation remains
   blocked by existing unlock gate.
-- [ ] Run full Jest, lint/build, then commit `fix: confirm disruptive Studio actions`.
+- [x] Run full Jest, lint/build, then commit `fix: confirm disruptive Studio actions`.
 
 ### Task 8: Update DYA Dependency Pins and Integration Test
 
@@ -506,8 +506,8 @@ MacroComboPage/useMacroEditor/useComboEditor: discard, delete, reset
 - Modify: `dya-studio/package.json`
 - Modify: `dya-studio/package-lock.json`
 
-- [ ] Pin exact owner commit SHAs for remediated React/ts-client dependencies.
-- [ ] Run:
+- [x] Pin exact owner commit SHAs for remediated React/ts-client dependencies.
+- [x] Run:
 
 ```bash
 npm ci
@@ -517,5 +517,6 @@ npm test -- --runInBand
 npm run build
 ```
 
-- [ ] Run browser fixtures for malicious device URL, oversized frame, timeout, ambiguous reconnect, support export, and every confirmation path.
-- [ ] Commit `build: pin remediated Studio clients`.
+- [x] Run browser fixtures for malicious device URL, oversized frame, timeout, ambiguous reconnect, support export, and every confirmation path.
+- [x] Commit `build: pin remediated Studio clients` (pin change already committed
+  in `a8a74ce`; no duplicate empty commit).
