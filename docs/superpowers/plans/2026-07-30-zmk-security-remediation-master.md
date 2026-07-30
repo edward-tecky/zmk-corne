@@ -24,7 +24,12 @@ Updated 2026-07-30:
   Repository-owned GitHub Actions runs 30534460476, 30534737625, and
   30534942755 passed required four-target gates and uploaded no firmware
   artifacts.
-- Tasks 4–6 pending.
+- Task 4 complete through official-baseline adjudication (`e280d2f`,
+  `2a94633`, `0bba543`, `7b602a3`). Exact-source CI runs 30539322688 and
+  30539334928 produced identical four-target hashes and uploaded no artifacts.
+  Six Cormoran/DYA findings are removed; ZMK-SEC-009 and ZMK-SEC-021 remain
+  in-review with affected artifacts disabled/undistributed.
+- Tasks 5–6 pending.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
   `python3 security/tests/test_workflow_security.py` (6 tests) because three
@@ -286,20 +291,20 @@ git commit -m "docs: record local firmware boundary results"
 - Consumes: immutable workflow/manifest, isolated Studio artifact, upstream review state.
 - Produces: official-ZMK product baseline and individual verdicts for ZMK-SEC-004/008/009/014/015/016/017/021.
 
-- [ ] **Step 1: Execute official-baseline child plan**
+- [x] **Step 1: Execute official-baseline child plan**
 
 Run all three tasks in
 `docs/superpowers/plans/2026-07-30-official-zmk-baseline-and-gates.md`.
 Do not collapse its eight finding rows into one migration verdict.
 
-- [ ] **Step 2: Apply upstream gate**
+- [x] **Step 2: Apply upstream gate**
 
 If ZMK-SEC-009 or ZMK-SEC-021 lacks reviewed upstream merge SHA, leave affected
 feature disabled and mark `deferred-open` only after explicit user acceptance.
 If reviewed SHAs exist, pin them, rerun child-plan tests and both-half builds,
 then request focused finding review before closure.
 
-- [ ] **Step 3: Verify effective removal and residual gates**
+- [x] **Step 3: Verify effective removal and residual gates**
 
 ```bash
 python3 security/tests/test_official_baseline.py
@@ -311,7 +316,7 @@ git diff --check
 Expected: zero DYA firmware modules in effective build; one independent verdict
 for each of eight findings; no disabled feature silently marked closed.
 
-- [ ] **Step 4: Update and commit ledger**
+- [x] **Step 4: Update and commit ledger**
 
 ```bash
 git add security/audit/remediation-ledger.md \

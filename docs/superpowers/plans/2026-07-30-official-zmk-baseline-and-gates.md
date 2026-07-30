@@ -36,7 +36,8 @@ Devicetree/Kconfig, Python 3 `unittest`
 - Modify `boards/shields/eyelash_corne/eyelash_corne_studio.conf`: official Studio only, BLE transport disabled.
 - Modify `security/build-firmware-boundaries.yaml`: locked USB Studio-left
   validation; settings-reset remains non-published for ZMK-SEC-021 testing.
-- Create `security/audit/official-baseline-evidence.md`: immutable manifest digest, build hashes, effective configs, and separate finding verdicts.
+- Create `security/audit/official-baseline-findings.md`: immutable manifest digest,
+  build hashes, effective configs, and separate finding verdicts.
 
 ### Task 1: Generate Frozen Official Manifest
 
@@ -246,7 +247,7 @@ Keep `build.yaml` limited to ordinary right. In unpublished
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
 ```
 
-- [ ] **Step 6: Run tests and repository-owned CI**
+- [x] **Step 6: Run tests and repository-owned CI**
 
 ```bash
 python3 security/tests/test_official_baseline.py
@@ -259,7 +260,7 @@ gh run watch "$(gh run list --workflow security-firmware-boundaries.yml \
 
 Expected: all builds pass and each pair is identical.
 
-- [ ] **Step 7: Commit migration implementation**
+- [x] **Step 7: Commit migration implementation**
 
 ```bash
 git add config/west.yml config/eyelash_corne.keymap \
@@ -272,13 +273,13 @@ git commit -m "build: establish official ZMK baseline"
 ### Task 3: Record Finding-by-Finding Gates
 
 **Files:**
-- Create: `security/audit/official-baseline-evidence.md`
+- Create: `security/audit/official-baseline-findings.md`
 
 **Interfaces:**
 - Consumes: exact effective configs, frozen graph, and repeat hashes from Tasks 1-2.
 - Produces: separate verdicts without merging finding decisions.
 
-- [ ] **Step 1: Capture immutable evidence**
+- [x] **Step 1: Capture immutable evidence**
 
 ```bash
 sha256sum config/west.yml \
@@ -290,9 +291,9 @@ rg -n '^CONFIG_(ZMK_STUDIO|ZMK_STUDIO_LOCKING|ZMK_STUDIO_TRANSPORT_BLE|ZMK_BLE_M
   > /tmp/official-baseline-config.txt
 ```
 
-- [ ] **Step 2: Create exact verdict matrix**
+- [x] **Step 2: Create exact verdict matrix**
 
-Write `security/audit/official-baseline-evidence.md` with these rows and attach command output:
+Write `security/audit/official-baseline-findings.md` with these rows and attach command output:
 
 ```markdown
 | Finding | Verdict after baseline | Evidence rule |
@@ -309,10 +310,10 @@ Write `security/audit/official-baseline-evidence.md` with these rows and attach 
 
 Do not label ZMK-SEC-009 or ZMK-SEC-021 closed.
 
-- [ ] **Step 3: Commit evidence**
+- [x] **Step 3: Commit evidence**
 
 ```bash
-git add security/audit/official-baseline-evidence.md
+git add security/audit/official-baseline-findings.md
 git diff --cached --check
 git commit -m "docs: record official baseline security gates"
 ```
