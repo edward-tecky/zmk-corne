@@ -45,3 +45,24 @@
 | ZMK-SEC-016 | Removed from baseline | Runtime-sensor and BLE-management modules absent |
 | ZMK-SEC-017 | Removed from baseline | Runtime-input module and symbols absent |
 | ZMK-SEC-021 | Open; settings-reset undistributed | Reviewed guard SHA not pinned; reset build is validation-only and uploaded nowhere |
+
+## Reviewed patch integration
+
+- Product source: `0ebe524c795dcfaeb30ed7d7c1570732dcd8abf4`
+- Reviewed ZMK fork: `df896a2f4ffafa145bbae043debe523561b28493`
+- Push CI: distributable run `30576318651`; boundary run `30576318713`
+- Exact-source repeat CI: distributable run `30576777245`; boundary run
+  `30576779722`
+- All runs passed. Boundary runs uploaded no artifacts.
+
+| Validation target | SHA-256 in both boundary runs |
+|---|---|
+| Ordinary right | `20566c8128be9d50ca34c0e214966ba91af4d3f436245935fafad844b45e26dd` |
+| Ordinary left | `fec3be7ac31a6d9230e64f72737fe06ee07cd5d93d2ec27d5a428bc0812550e4` |
+| Locked USB Studio-left | `24618d7d2d90db6186aa353806b73b29e5a9144485a19643373b55a85e40ee08` |
+| Settings-reset validation | `001a0e3a33055c2a50dc132f3e1de09c1c448071a896649221c74f182f49be16` |
+
+ZMK-SEC-009 and ZMK-SEC-021 move from accepted deferral to `in-review`.
+Software and deterministic-build gates pass. BLE Studio remains disabled until
+its encrypted hardware boundary test; settings-reset remains undistributed
+until its manual recovery test.

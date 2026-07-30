@@ -10,7 +10,7 @@
 
 ## Execution Status
 
-Updated 2026-07-30:
+Updated 2026-07-31:
 
 - Task 1 complete (`c4c4cb4`).
 - Task 2 complete.
@@ -35,6 +35,14 @@ Updated 2026-07-30:
 - Task 6 pre-flash software gate complete for source `7297a06`; exact-source
   CI runs 30561289211 and 30561292657 are deterministic and uploaded no
   artifacts. Exact-hash approval and all hardware checks remain pending.
+- Reviewed ZMK fixes are now combined at
+  `df896a2f4ffafa145bbae043debe523561b28493` and pinned by product source
+  `0ebe524c795dcfaeb30ed7d7c1570732dcd8abf4`. Independent review found no
+  Critical or Important issues. Push and exact-source repeat runs
+  30576318651/30576777245 and 30576318713/30576779722 passed with deterministic
+  hashes. ZMK-SEC-009 and ZMK-SEC-021 are `in-review`; their remaining gates
+  require hardware, so BLE Studio stays disabled and settings-reset stays
+  undistributed.
 - No hardware artifact has been flashed.
 - First-wave checkpoint used consolidated
   `python3 security/tests/test_workflow_security.py` (6 tests) because three
